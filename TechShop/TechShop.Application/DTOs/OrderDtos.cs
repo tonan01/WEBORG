@@ -36,3 +36,18 @@ public class CheckoutDto
     public string? PaymentMethod { get; set; }
     public string? Note { get; set; }
 }
+
+public class AdminStatsDto
+{
+    public decimal TotalRevenue { get; set; }
+    public int TotalOrders { get; set; }
+    public int TotalProducts { get; set; }
+    public int TotalCategories { get; set; }
+    public List<MonthlyRevenueDto> MonthlyRevenue { get; set; } = new();
+}
+
+public class MonthlyRevenueDto
+{
+    public string Month { get; set; } = string.Empty; // e.g., "Jan", "Feb"
+    public decimal Revenue { get; set; }
+}

@@ -27,10 +27,7 @@ function NavbarComponent() {
                                 <Nav.Link as={Link} to="/cart">Cart</Nav.Link>
                                 <Nav.Link as={Link} to="/history">Orders</Nav.Link>
                                 {user.role === 'Admin' && (
-                                    <>
-                                        <Nav.Link as={Link} to="/admin" className="text-warning fw-bold">Admin Panel</Nav.Link>
-                                        <Nav.Link as={Link} to="/admin/categories">Categories</Nav.Link>
-                                    </>
+                                    <Nav.Link as={Link} to="/admin" className="text-warning fw-bold">Admin Panel</Nav.Link>
                                 )}
                                 <div className="ms-lg-3 d-flex align-items-center">
                                     <span className="me-3 small text-muted">Hi, <b>{user.username}</b></span>

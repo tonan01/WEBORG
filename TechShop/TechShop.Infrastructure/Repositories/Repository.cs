@@ -55,6 +55,11 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
     }
 
+    public async Task<T?> GetByIdIgnoreFiltersAsync(int id)
+    {
+        return await _dbSet.IgnoreQueryFilters().FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
+    }
+
     /// <summary>Query DB trực tiếp — không load cả bảng vào memory</summary>
     public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate)
     {
@@ -62,9 +67,12 @@ public class Repository<T> : IRepository<T> where T : class
     }
 
     /// <summary>Bypass Global Query Filter (soft delete) — chỉ dùng cho Admin</summary>
-    public async Task<IEnumerable<T>> GetAllIgnoreFiltersAsync()
+    public async Task<IEnumerable<T>> GetAllIgnoreFiltersAsync(params Expression<Func<T, object>>[] includes)
     {
-        return await _dbSet.IgnoreQueryFilters().ToListAsync();
+        IQueryable<T> query = _dbSet.IgnoreQueryFilters();
+        foreach (var include in includes)
+            query = query.Include(include);
+        return await query.ToListAsync();
     }
 
     /// <summary>Query nhiều row theo predicate — không load cả bảng vào memory</summary>
@@ -87,10 +95,26 @@ public class Repository<T> : IRepository<T> where T : class
 
     public async Task DeleteAsync(int id, bool saveChanges = true)
     {
-        var entity = await GetByIdAsync(id);
+        var entity = await GetByIdIgnoreFiltersAsync(id);
         if (entity != null)
         {
             _dbSet.Remove(entity);
+            if (saveChanges) await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task RestoreAsync(int id, bool saveChanges = true)
+    {
+        // Phải dùng IgnoreQueryFilters để tìm thấy entity đã xóa
+        var entity = await _dbSet.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
+            
+        if (entity is TechShop.Domain.Entities.AuditableEntity auditable)
+        {
+            auditable.IsDeleted = false;
+            auditable.DeletedDate = null;
+            auditable.DeletedBy = null;
+            _dbSet.Update(entity);
             if (saveChanges) await _context.SaveChangesAsync();
         }
     }

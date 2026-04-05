@@ -24,9 +24,15 @@ public class OrdersController : ControllerBase
     [HttpPost("checkout")]
     public async Task<IActionResult> Checkout([FromBody] CheckoutDto dto)
     {
-        var order = await _orderService.CreateOrderFromCartAsync(GetUserId(), dto);
-        if (order == null) return BadRequest(new { Message = "Giỏ hàng trống hoặc có sản phẩm hết hàng." });
-        return Ok(order);
+        try
+        {
+            var order = await _orderService.CreateOrderFromCartAsync(GetUserId(), dto);
+            return Ok(order);
+        }
+        catch (System.InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     [HttpGet("history")]
@@ -43,6 +49,14 @@ public class OrdersController : ControllerBase
     {
         var orders = await _orderService.GetAllOrdersAsync();
         return Ok(orders);
+    }
+
+    [HttpGet("admin/stats")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAdminStats()
+    {
+        var stats = await _orderService.GetDashboardStatsAsync();
+        return Ok(stats);
     }
 
     [HttpPut("{id}/status")]

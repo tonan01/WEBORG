@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Badge, Card, Spinner } from 'react-bootstrap';
 import { productService, cartService } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 function ProductDetailPage() {
     const { id } = useParams();
@@ -28,16 +29,16 @@ function ProductDetailPage() {
 
     const handleAddToCart = async () => {
         if (!user) {
-            alert('Please login to add to cart');
+            toast.error('Please login to add to cart');
             navigate('/login');
             return;
         }
         setAdding(true);
         try {
             await cartService.add(product.id, 1);
-            alert('Added to cart!');
+            toast.success('Added to cart!');
         } catch (err) {
-            alert(err.response?.data?.message || 'Error adding to cart');
+            toast.error(err.response?.data?.message || 'Error adding to cart');
         } finally {
             setAdding(false);
         }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Table, Button, Card, Row, Col, Form } from 'react-bootstrap';
 import { cartService, orderService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 function CartPage() {
     const [cart, setCart] = useState(null);
@@ -33,7 +34,7 @@ function CartPage() {
             await cartService.update(itemId, newQty);
             loadCart();
         } catch (err) {
-            alert(err.response?.data?.message || 'Error updating quantity');
+            toast.error(err.response?.data?.message || 'Error updating quantity');
         }
     };
 
@@ -51,11 +52,12 @@ function CartPage() {
         setLoading(true);
         try {
             await orderService.checkout(checkoutData);
-            alert('Order placed successfully!');
+            toast.success('Order placed successfully!');
             setCart(null);
             navigate('/history');
         } catch (err) {
-            alert(err.response?.data || 'Checkout failed. Please check stock or login.');
+            const errorMsg = err.response?.data?.message || err.response?.data || 'Checkout failed. Please check stock or login.';
+            toast.error(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
         } finally {
             setLoading(false);
         }

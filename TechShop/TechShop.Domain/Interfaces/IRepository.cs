@@ -10,6 +10,7 @@ public interface IRepository<T> where T : class
     Task<IEnumerable<T>> GetAllWithIncludesAsync(params Expression<Func<T, object>>[] includes);
     Task<T?> GetByIdAsync(int id);
     Task<T?> GetByIdWithIncludesAsync(int id, params Expression<Func<T, object>>[] includes);
+    Task<T?> GetByIdIgnoreFiltersAsync(int id);
 
     /// <summary>Query DB trực tiếp — không load cả bảng vào memory</summary>
     Task<T?> FindAsync(Expression<Func<T, bool>> predicate);
@@ -18,11 +19,12 @@ public interface IRepository<T> where T : class
     Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> predicate);
 
     /// <summary>Bypass Global Query Filter (soft delete) — chỉ dùng cho Admin</summary>
-    Task<IEnumerable<T>> GetAllIgnoreFiltersAsync();
+    Task<IEnumerable<T>> GetAllIgnoreFiltersAsync(params Expression<Func<T, object>>[] includes);
 
     Task AddAsync(T entity, bool saveChanges = true);
     Task UpdateAsync(T entity, bool saveChanges = true);
     Task DeleteAsync(int id, bool saveChanges = true);
+    Task RestoreAsync(int id, bool saveChanges = true);
     Task SaveChangesAsync();
 
     // Transactions

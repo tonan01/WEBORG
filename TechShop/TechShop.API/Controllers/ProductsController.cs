@@ -18,9 +18,9 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll([FromQuery] string? keyword = null)
+    public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll([FromQuery] string? keyword = null, [FromQuery] int? categoryId = null)
     {
-        var products = await _productService.GetAllProductsAsync(keyword);
+        var products = await _productService.GetAllProductsAsync(keyword, categoryId);
         return Ok(products);
     }
 
@@ -64,5 +64,14 @@ public class ProductsController : ControllerBase
         var result = await _productService.DeleteProductAsync(id);
         if (!result) return NotFound();
         return NoContent();
+    }
+
+    [HttpPatch("{id}/restore")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Restore(int id)
+    {
+        var result = await _productService.RestoreProductAsync(id);
+        if (!result) return NotFound();
+        return Ok(new { Message = "Sản phẩm đã được khôi phục" });
     }
 }

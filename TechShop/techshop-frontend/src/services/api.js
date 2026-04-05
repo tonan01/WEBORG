@@ -30,7 +30,8 @@ export const productService = {
     getAllWithDeleted: () => api.get('/products/all-with-deleted'),
     create: (data) => api.post('/products', data),
     update: (id, data) => api.put(`/products/${id}`, data),
-    remove: (id) => api.delete(`/products/${id}`)
+    remove: (id) => api.delete(`/products/${id}`),
+    restore: (id) => api.patch(`/products/${id}/restore`)
 };
 
 export const categoryService = {
@@ -55,6 +56,7 @@ export const orderService = {
     // ✅ Quyền Admin
     getAll: () => api.get('/orders/all'),
     updateStatus: (id, status) => api.put(`/orders/${id}/status`, JSON.stringify(status), { headers: { 'Content-Type': 'application/json' } }),
+    getAdminStats: () => api.get('/orders/admin/stats')
 };
 
 export default api;

@@ -8,6 +8,7 @@ public class CategoryDto
     public string? ImageUrl { get; set; }
     public int? ParentCategoryId { get; set; }
     public string? ParentCategoryName { get; set; }
+    public bool IsDeleted { get; set; }
 }
 
 public class CategoryCreateDto

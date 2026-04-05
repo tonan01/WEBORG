@@ -9,11 +9,12 @@ namespace TechShop.Application.Services;
 
 public interface IProductService
 {
-    Task<IEnumerable<ProductDto>> GetAllProductsAsync(string? keyword = null);
+    Task<IEnumerable<ProductDto>> GetAllProductsAsync(string? keyword = null, int? categoryId = null);
     Task<ProductDto?> GetProductByIdAsync(int id);
     Task<ProductDto> CreateProductAsync(ProductCreateDto dto);
     Task<bool> UpdateProductAsync(int id, ProductUpdateDto dto);
     Task<bool> DeleteProductAsync(int id);
+    Task<bool> RestoreProductAsync(int id);
     /// <summary>Chỉ dành cho Admin - bao gồm cả sản phẩm đã xóa mềm</summary>
     Task<IEnumerable<ProductDto>> GetAllIncludingDeletedAsync();
 }
@@ -21,13 +22,15 @@ public interface IProductService
 public class ProductService : IProductService
 {
     private readonly IRepository<Product> _productRepo;
+    private readonly ICategoryService _categoryService;
 
-    public ProductService(IRepository<Product> productRepo)
+    public ProductService(IRepository<Product> productRepo, ICategoryService categoryService)
     {
         _productRepo = productRepo;
+        _categoryService = categoryService;
     }
 
-    public async Task<IEnumerable<ProductDto>> GetAllProductsAsync(string? keyword = null)
+    public async Task<IEnumerable<ProductDto>> GetAllProductsAsync(string? keyword = null, int? categoryId = null)
     {
         // ✅ Cây: Products → Category (dùng Include — 1 query duy nhất, không phải 2)
         var products = await _productRepo.GetAllWithIncludesAsync(p => p.Category);
@@ -38,6 +41,12 @@ public class ProductService : IProductService
                 p.Name.Contains(keyword, System.StringComparison.OrdinalIgnoreCase) ||
                 (p.Description?.Contains(keyword, System.StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (p.SKU?.Contains(keyword, System.StringComparison.OrdinalIgnoreCase) ?? false));
+        }
+
+        if (categoryId.HasValue)
+        {
+            var categoryIds = await _categoryService.GetCategoryIdsRecursiveAsync(categoryId.Value);
+            products = products.Where(p => categoryIds.Contains(p.CategoryId));
         }
 
         return products.Select(MapToDto);
@@ -71,7 +80,7 @@ public class ProductService : IProductService
 
     public async Task<bool> UpdateProductAsync(int id, ProductUpdateDto dto)
     {
-        var product = await _productRepo.GetByIdAsync(id);
+        var product = await _productRepo.GetByIdIgnoreFiltersAsync(id);
         if (product == null) return false;
 
         product.Name = dto.Name;
@@ -88,16 +97,29 @@ public class ProductService : IProductService
 
     public async Task<bool> DeleteProductAsync(int id)
     {
-        var product = await _productRepo.GetByIdAsync(id);
+        var product = await _productRepo.GetByIdIgnoreFiltersAsync(id);
         if (product == null) return false;
         await _productRepo.DeleteAsync(id);
         return true;
     }
 
+    public async Task<bool> RestoreProductAsync(int id)
+    {
+        var product = await _productRepo.GetByIdIgnoreFiltersAsync(id);
+        if (product != null && !product.IsDeleted) return true; // Đã tồn tại và chưa xóa
+
+        // Repository cần hỗ trợ Restore, hoặc ta tự set IsDeleted = false nếu dùng IRepository chung
+        // Tuy nhiên Repository.cs thường ẩn các item đã xóa. 
+        // Tôi sẽ giả định Repository có phương thức Restore hoặc cập nhật trực tiếp qua context nếu cần.
+        // Ở đây tôi sẽ sử dụng phương thức của Repository nếu có.
+        await _productRepo.RestoreAsync(id);
+        return true;
+    }
+
     public async Task<IEnumerable<ProductDto>> GetAllIncludingDeletedAsync()
     {
-        // ✅ Truy cập repository bypass query filter
-        var products = await _productRepo.GetAllIgnoreFiltersAsync();
+        // ✅ Truy cập repository bypass query filter và lấy kèm Category name
+        var products = await _productRepo.GetAllIgnoreFiltersAsync(p => p.Category);
         return products.Select(MapToDto);
     }
 
@@ -112,6 +134,7 @@ public class ProductService : IProductService
         ImageUrl = p.ImageUrl,
         CategoryId = p.CategoryId,
         // ✅ Truy cập Category trực tiếp qua navigation property — không cần join thủ công
-        CategoryName = p.Category?.Name ?? "Unknown"
+        CategoryName = p.Category?.Name ?? "Unknown",
+        IsDeleted = p.IsDeleted
     };
 }

@@ -126,6 +126,21 @@ using (var scope = app.Services.CreateScope())
         );
         dbContext.SaveChanges();
     }
+
+    if (!dbContext.Users.Any(u => u.Role == "Admin"))
+    {
+        var adminUser = new TechShop.Domain.Entities.User
+        {
+            Username = "admin",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
+            Role = "Admin",
+            Email = "admin@techshop.com",
+            FullName = "Administrator",
+            Phone = "0123456789"
+        };
+        dbContext.Users.Add(adminUser);
+        dbContext.SaveChanges();
+    }
 }
 
 app.MapControllers();

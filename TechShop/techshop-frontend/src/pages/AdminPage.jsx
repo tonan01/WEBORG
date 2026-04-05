@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Tabs, Tab, Table, Button, Form, Modal, Row, Col, Badge } from 'react-bootstrap';
-import { productService, categoryService } from '../services/api';
+import { Container, Tabs, Tab, Table, Button, Modal, Form, Badge, Card, Row, Col } from 'react-bootstrap';
+import { productService, categoryService, orderService } from '../services/api';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { toast } from 'react-hot-toast';
 
 function AdminPage() {
+    console.log('AdminPage Component Rendering...');
     const [products, setProducts] = useState([]);
+    const [prodFilter, setProdFilter] = useState('all'); // all, active, deleted
     const [categories, setCategories] = useState([]);
     const [orders, setOrders] = useState([]);
-    const [activeTab, setActiveTab] = useState('products');
+    const [stats, setStats] = useState(null);
+    const [activeTab, setActiveTab] = useState('dashboard');
 
     // Modal States
     const [showProdModal, setShowProdModal] = useState(false);
@@ -28,14 +33,16 @@ function AdminPage() {
 
     const loadData = async () => {
         try {
-            const [pRes, cRes, oRes] = await Promise.all([
-                productService.getAll(),
+            const [prodRes, catRes, orderRes, statsRes] = await Promise.all([
+                productService.getAllWithDeleted(),
                 categoryService.getAll(),
-                orderService.getAll()
+                orderService.getAll(),
+                orderService.getAdminStats()
             ]);
-            setProducts(pRes.data);
-            setCategories(cRes.data);
-            setOrders(oRes.data);
+            setProducts(prodRes.data);
+            setCategories(catRes.data);
+            setOrders(orderRes.data);
+            setStats(statsRes.data);
         } catch (err) {
             console.error('Error loading admin data', err);
         }
@@ -49,25 +56,45 @@ function AdminPage() {
     const handleProductSubmit = async (e) => {
         e.preventDefault();
         try {
+            const data = {
+                ...productForm,
+                price: Number(productForm.price),
+                stock: Number(productForm.stock),
+                categoryId: Number(productForm.categoryId)
+            };
+            
             if (editingProduct) {
-                await productService.update(editingProduct.id, productForm);
+                await productService.update(editingProduct.id, data);
+                toast.success('Product updated successfully!');
             } else {
-                await productService.create(productForm);
+                await productService.create(data);
+                toast.success('Product created successfully!');
             }
             setShowProdModal(false);
             loadData();
         } catch (err) {
-            alert('Failed to save product');
+            toast.error('Failed to save product');
         }
     };
 
     const deleteProduct = async (id) => {
-        if (!window.confirm('Delete this product?')) return;
         try {
             await productService.remove(id);
+            toast.success('Product deleted!');
             loadData();
         } catch (err) {
-            alert('Cannot delete product (likely in orders)');
+            console.error('Delete error:', err);
+            toast.error('Cannot delete product (likely in orders)');
+        }
+    };
+
+    const restoreProduct = async (id) => {
+        try {
+            await productService.restore(id);
+            toast.success('Product restored!');
+            loadData();
+        } catch (err) {
+            toast.error('Failed to restore product');
         }
     };
 
@@ -78,23 +105,25 @@ function AdminPage() {
         try {
             if (editingCategory) {
                 await categoryService.update(editingCategory.id, data);
+                toast.success('Category updated!');
             } else {
                 await categoryService.create(data);
+                toast.success('Category created!');
             }
             setShowCatModal(false);
             loadData();
         } catch (err) {
-            alert('Failed to save category');
+            toast.error('Failed to save category');
         }
     };
 
     const deleteCategory = async (id) => {
-        if (!window.confirm('Delete this category?')) return;
         try {
             await categoryService.remove(id);
+            toast.success('Category deleted!');
             loadData();
         } catch (err) {
-            alert('Cannot delete category (contains products or sub-categories)');
+            toast.error('Cannot delete category (likely contains products or subcategories)');
         }
     };
 
@@ -102,10 +131,10 @@ function AdminPage() {
     const handleUpdateOrderStatus = async (orderId, newStatus) => {
         try {
             await orderService.updateStatus(orderId, newStatus);
-            alert('Order status updated!');
+            toast.success('Order status updated!');
             loadData();
         } catch (err) {
-            alert('Failed to update order status');
+            toast.error('Failed to update order status');
         }
     };
 
@@ -121,8 +150,20 @@ function AdminPage() {
                 >
                     <Tab eventKey="products" title="Products">
                         <div className="p-4">
-                            <div className="d-flex justify-content-between mb-4">
-                                <h5>Products ({products.length})</h5>
+                            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                                <div className="d-flex align-items-center gap-3">
+                                    <h5 className="mb-0">Products ({products.length})</h5>
+                                    <Form.Select 
+                                        size="sm" 
+                                        style={{ width: '150px' }}
+                                        value={prodFilter}
+                                        onChange={(e) => setProdFilter(e.target.value)}
+                                    >
+                                        <option value="all">All Status</option>
+                                        <option value="active">Active Only</option>
+                                        <option value="deleted">Deleted Only</option>
+                                    </Form.Select>
+                                </div>
                                 <Button variant="primary" onClick={() => {
                                     setEditingProduct(null);
                                     setProductForm({ name: '', description: '', price: 0, stock: 0, sku: '', imageUrl: '', categoryId: '' });
@@ -140,24 +181,42 @@ function AdminPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {products.map(p => (
-                                        <tr key={p.id}>
+                                    {products
+                                        .filter(p => {
+                                            if (prodFilter === 'active') return !p.isDeleted;
+                                            if (prodFilter === 'deleted') return p.isDeleted;
+                                            return true;
+                                        })
+                                        .map(p => (
+                                        <tr key={p.id} className={p.isDeleted ? 'table-light opacity-75' : ''}>
                                             <td>
-                                                <div className="fw-bold">{p.name}</div>
+                                                <div className={`fw-bold ${p.isDeleted ? 'text-decoration-line-through text-danger' : ''}`}>
+                                                    {p.name} 
+                                                    {p.isDeleted && <Badge bg="secondary" className="ms-1">Deleted</Badge>}
+                                                </div>
                                                 <div className="small text-muted">{p.sku}</div>
                                             </td>
                                             <td><Badge bg="light" text="primary" className="rounded-pill p-1 px-3">{p.categoryName}</Badge></td>
-                                            <td className="fw-bold">${p.price}</td>
+                                            <td className={`fw-bold ${p.isDeleted ? 'text-decoration-line-through' : ''}`}>${p.price}</td>
                                             <td>
                                                 <Badge bg={p.stock < 5 ? 'warning' : 'light'} text={p.stock < 5 ? 'white' : 'dark'}>{p.stock}</Badge>
                                             </td>
                                             <td>
-                                                <Button size="sm" variant="outline-info" className="me-2" onClick={() => {
-                                                    setEditingProduct(p);
-                                                    setProductForm(p);
-                                                    setShowProdModal(true);
-                                                }}>Edit</Button>
-                                                <Button size="sm" variant="outline-danger" onClick={() => deleteProduct(p.id)}>Del</Button>
+                                                {!p.isDeleted ? (
+                                                    <>
+                                                        <Button size="sm" variant="outline-info" className="me-2" onClick={() => {
+                                                            setEditingProduct(p);
+                                                            setProductForm({
+                                                                ...p,
+                                                                categoryId: p.categoryId || ''
+                                                            });
+                                                            setShowProdModal(true);
+                                                        }}>Edit</Button>
+                                                        <Button size="sm" variant="outline-danger" onClick={() => deleteProduct(p.id)}>Delete</Button>
+                                                    </>
+                                                ) : (
+                                                    <Button size="sm" variant="outline-success" onClick={() => restoreProduct(p.id)}>Restore</Button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
@@ -261,6 +320,73 @@ function AdminPage() {
                                     ))}
                                 </tbody>
                             </Table>
+                        </div>
+                    </Tab>
+
+                    <Tab eventKey="dashboard" title="Dashboard">
+                        <div className="p-4">
+                            {stats ? (
+                                <>
+                                    <Row className="mb-4">
+                                        <Col md={3}>
+                                            <Card className="text-center border-0 bg-light shadow-sm mb-3">
+                                                <Card.Body>
+                                                    <div className="text-muted small mb-1">Total Revenue</div>
+                                                    <h3 className="text-primary mb-0">${stats.totalRevenue.toLocaleString()}</h3>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                        <Col md={3}>
+                                            <Card className="text-center border-0 bg-light shadow-sm mb-3">
+                                                <Card.Body>
+                                                    <div className="text-muted small mb-1">Total Orders</div>
+                                                    <h3 className="text-success mb-0">{stats.totalOrders}</h3>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                        <Col md={3}>
+                                            <Card className="text-center border-0 bg-light shadow-sm mb-3">
+                                                <Card.Body>
+                                                    <div className="text-muted small mb-1">Products</div>
+                                                    <h3 className="text-info mb-0">{stats.totalProducts}</h3>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                        <Col md={3}>
+                                            <Card className="text-center border-0 bg-light shadow-sm mb-3">
+                                                <Card.Body>
+                                                    <div className="text-muted small mb-1">Categories</div>
+                                                    <h3 className="text-purple mb-0" style={{ color: '#a855f7' }}>{stats.totalCategories}</h3>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                    </Row>
+
+                                    <Card className="border-0 shadow-sm p-4 mb-4">
+                                        <h5 className="mb-4">Monthly Revenue Growth</h5>
+                                        <div style={{ width: '100%', height: 300 }}>
+                                            <ResponsiveContainer>
+                                                <BarChart data={stats.monthlyRevenue}>
+                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                                    <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                                                    <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `$${val}`} />
+                                                    <Tooltip 
+                                                        cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
+                                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                                                    />
+                                                    <Bar dataKey="revenue" radius={[6, 6, 0, 0]}>
+                                                        {stats.monthlyRevenue.map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={index === stats.monthlyRevenue.length - 1 ? '#6366f1' : '#cbd5e1'} />
+                                                        ))}
+                                                    </Bar>
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </Card>
+                                </>
+                            ) : (
+                                <div className="text-center py-5">Loading stats...</div>
+                            )}
                         </div>
                     </Tab>
                 </Tabs>

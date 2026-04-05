@@ -3,6 +3,7 @@ import { Card, Button, Row, Col, Form, InputGroup, Container, Badge } from 'reac
 import { useNavigate } from 'react-router-dom';
 import { productService, cartService, categoryService } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 function HomePage() {
     const [products, setProducts] = useState([]);
@@ -12,6 +13,26 @@ function HomePage() {
     const [loading, setLoading] = useState(false);
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
+
+    const buildCategoryTree = (flatCategories) => {
+        const map = {};
+        const roots = [];
+        
+        flatCategories.forEach(cat => {
+            map[cat.id] = { ...cat, children: [] };
+        });
+        
+        flatCategories.forEach(cat => {
+            if (cat.parentCategoryId) {
+                if (map[cat.parentCategoryId]) {
+                    map[cat.parentCategoryId].children.push(map[cat.id]);
+                }
+            } else {
+                roots.push(map[cat.id]);
+            }
+        });
+        return roots;
+    };
 
     const loadData = async () => {
         setLoading(true);
@@ -40,15 +61,15 @@ function HomePage() {
 
     const handleAddToCart = async (productId) => {
         if (!user) {
-            alert('Please login to add to cart');
+            toast.error('Please login to add to cart');
             navigate('/login');
             return;
         }
         try {
             await cartService.add(productId, 1);
-            alert('Added to cart!');
+            toast.success('Added to cart!');
         } catch (err) {
-            alert(err.response?.data?.message || 'Error adding to cart');
+            toast.error(err.response?.data?.message || 'Error adding to cart');
         }
     };
 
@@ -59,19 +80,40 @@ function HomePage() {
                 <Col md={3} className="mb-4">
                     <div className="glass-card p-3 sticky-top" style={{ top: '100px', zIndex: 10 }}>
                         <h5 className="mb-3 px-2">Categories</h5>
-                        <div 
-                            className={`category-item ${selectedCategory === null ? 'active' : ''}`}
-                            onClick={() => setSelectedCategory(null)}
-                        >
-                            All Products
-                        </div>
-                        {categories.map(cat => (
+                        {selectedCategory === null ? (
                             <div 
-                                key={cat.id} 
-                                className={`category-item ${selectedCategory === cat.id ? 'active' : ''}`}
-                                onClick={() => setSelectedCategory(cat.id)}
+                                className="category-item active"
+                                onClick={() => setSelectedCategory(null)}
                             >
-                                {cat.name}
+                                All Products
+                            </div>
+                        ) : (
+                            <div 
+                                className="category-item"
+                                onClick={() => setSelectedCategory(null)}
+                            >
+                                All Products
+                            </div>
+                        )}
+
+                        {buildCategoryTree(categories).map(cat => (
+                            <div key={cat.id}>
+                                <div 
+                                    className={`category-item ${selectedCategory === cat.id ? 'active' : ''}`}
+                                    onClick={() => setSelectedCategory(cat.id)}
+                                >
+                                    {cat.name}
+                                </div>
+                                {cat.children.length > 0 && cat.children.map(child => (
+                                    <div 
+                                        key={child.id} 
+                                        className={`category-item small ps-4 ${selectedCategory === child.id ? 'active' : ''}`}
+                                        onClick={() => setSelectedCategory(child.id)}
+                                        style={{ fontSize: '0.85rem' }}
+                                    >
+                                        — {child.name}
+                                    </div>
+                                ))}
                             </div>
                         ))}
                     </div>

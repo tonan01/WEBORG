@@ -15,6 +15,7 @@ public interface IOrderService
     // ✅ Quyền Admin
     Task<IEnumerable<OrderDto>> GetAllOrdersAsync();
     Task<bool> UpdateOrderStatusAsync(int orderId, string status);
+    Task<AdminStatsDto> GetDashboardStatsAsync();
 }
 
 public class OrderService : IOrderService
@@ -24,24 +25,27 @@ public class OrderService : IOrderService
     private readonly ICartService _cartService;
     private readonly IRepository<CartItem> _cartItemRepo;
     private readonly IRepository<Product> _productRepo;
+    private readonly IRepository<Category> _categoryRepo;
 
     public OrderService(IRepository<Order> orderRepo,
                         IRepository<OrderDetail> orderDetailRepo,
                         ICartService cartService,
                         IRepository<CartItem> cartItemRepo,
-                        IRepository<Product> productRepo)
+                        IRepository<Product> productRepo,
+                        IRepository<Category> categoryRepo)
     {
         _orderRepo = orderRepo;
         _orderDetailRepo = orderDetailRepo;
         _cartService = cartService;
         _cartItemRepo = cartItemRepo;
         _productRepo = productRepo;
+        _categoryRepo = categoryRepo;
     }
 
     public async Task<OrderDto?> CreateOrderFromCartAsync(int userId, CheckoutDto checkoutDto)
     {
         var cartDto = await _cartService.GetCartByUserIdAsync(userId);
-        if (!cartDto.Items.Any()) return null;
+        if (!cartDto.Items.Any()) throw new InvalidOperationException("Giỏ hàng của bạn đang trống.");
 
         await _orderRepo.BeginTransactionAsync();
 
@@ -68,7 +72,7 @@ public class OrderService : IOrderService
                 if (product == null || product.Stock < item.Quantity)
                 {
                     await _orderRepo.RollbackTransactionAsync();
-                    return null;
+                    throw new InvalidOperationException($"Sản phẩm '{item.ProductName}' không đủ tồn kho (Chỉ còn {product?.Stock ?? 0}).");
                 }
 
                 var detail = new OrderDetail
@@ -142,6 +146,39 @@ public class OrderService : IOrderService
 
         await _orderRepo.UpdateAsync(order);
         return true;
+    }
+
+    public async Task<AdminStatsDto> GetDashboardStatsAsync()
+    {
+        var orders = await _orderRepo.GetAllAsync();
+        var products = await _productRepo.GetAllAsync();
+        var categories = await _categoryRepo.GetAllAsync();
+
+        var stats = new AdminStatsDto
+        {
+            TotalRevenue = orders.Sum(o => o.TotalAmount),
+            TotalOrders = orders.Count(),
+            TotalProducts = products.Count(),
+            TotalCategories = categories.Count()
+        };
+
+        // Thống kê doanh thu theo tháng (12 tháng gần nhất)
+        var months = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+        var now = DateTime.UtcNow;
+        
+        for (int i = 0; i < 12; i++)
+        {
+            var date = now.AddMonths(-(11 - i));
+            var monthOrders = orders.Where(o => o.OrderDate.Month == date.Month && o.OrderDate.Year == date.Year);
+            
+            stats.MonthlyRevenue.Add(new MonthlyRevenueDto
+            {
+                Month = months[date.Month - 1] + " " + (date.Year % 100),
+                Revenue = monthOrders.Sum(o => o.TotalAmount)
+            });
+        }
+
+        return stats;
     }
 
     private async Task<OrderDto> GetOrderByIdAsync(int orderId)

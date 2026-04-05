@@ -1,25 +1,25 @@
 import React, { useState, useContext } from 'react';
-import { Form, Button, Card, Container, Row, Col, Alert } from 'react-bootstrap';
+import { Form, Button, Card, Container, Row, Col } from 'react-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         setLoading(true);
         try {
             await login(username, password);
+            toast.success('Signed in successfully!');
             navigate('/');
         } catch (err) {
-            setError(err.response?.data || 'Login failed. Please check your credentials.');
+            toast.error(err.response?.data || 'Login failed. Please check your credentials.');
         } finally {
             setLoading(false);
         }
@@ -35,8 +35,6 @@ function LoginPage() {
                                 <h1 className="display-6">Welcome Back</h1>
                                 <p className="text-muted">Sign in to continue to TechShop</p>
                             </div>
-
-                            {error && <Alert variant="danger" className="rounded-3">{error}</Alert>}
 
                             <Form onSubmit={handleSubmit}>
                                 <Form.Group className="mb-3">

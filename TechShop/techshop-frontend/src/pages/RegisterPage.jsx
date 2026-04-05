@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Form, Button, Card, Container, Row, Col, Alert } from 'react-bootstrap';
+import { Form, Button, Card, Container, Row, Col } from 'react-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/api';
+import { toast } from 'react-hot-toast';
 
 function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -11,7 +12,6 @@ function RegisterPage() {
         fullName: '',
         phone: ''
     });
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -21,14 +21,13 @@ function RegisterPage() {
 
     const handleRegister = async (e) => {
         e.preventDefault();
-        setError('');
         setLoading(true);
         try {
             await authService.register(formData);
-            alert('Registration successful! Please login.');
+            toast.success('Registration successful! Please login.');
             navigate('/login');
         } catch (err) {
-            setError(err.response?.data || 'Registration failed. Username may exist.');
+            toast.error(err.response?.data || 'Registration failed. Username may exist.');
         } finally {
             setLoading(false);
         }
@@ -44,8 +43,6 @@ function RegisterPage() {
                                 <h1 className="display-6">Join TechShop</h1>
                                 <p className="text-muted">High-end gadgets specifically for you</p>
                             </div>
-                            
-                            {error && <Alert variant="danger" className="rounded-3">{error}</Alert>}
                             
                             <Form onSubmit={handleRegister}>
                                 <Row>

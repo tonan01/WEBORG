@@ -61,12 +61,30 @@ public class CategoryService : ICategoryService
 
     public async Task<bool> DeleteCategoryAsync(int id)
     {
-        var category = await _categoryRepo.GetByIdAsync(id);
+        var category = await _categoryRepo.GetByIdIgnoreFiltersAsync(id);
         if (category == null) return false;
 
         // Lưu ý: Nếu có sản phẩm thuộc danh mục này, DB sẽ chặn do RESTRICT trong DbContext
         await _categoryRepo.DeleteAsync(id);
         return true;
+    }
+
+    public async Task<List<int>> GetCategoryIdsRecursiveAsync(int parentId)
+    {
+        var result = new List<int> { parentId };
+        var allCategories = await _categoryRepo.GetAllAsync(); // Lấy tất cả để xử lý đệ quy trong memory
+        GetChildIds(parentId, allCategories.ToList(), result);
+        return result;
+    }
+
+    private void GetChildIds(int parentId, List<Category> allCategories, List<int> result)
+    {
+        var children = allCategories.Where(c => c.ParentCategoryId == parentId).Select(c => c.Id).ToList();
+        foreach (var childId in children)
+        {
+            result.Add(childId);
+            GetChildIds(childId, allCategories, result);
+        }
     }
 
     private static CategoryDto MapToDto(Category c) => new()
@@ -77,6 +95,7 @@ public class CategoryService : ICategoryService
         ImageUrl = c.ImageUrl,
         ParentCategoryId = c.ParentCategoryId,
         // ✅ Hiển thị tên danh mục cha
-        ParentCategoryName = c.ParentCategory?.Name
+        ParentCategoryName = c.ParentCategory?.Name,
+        IsDeleted = c.IsDeleted
     };
 }
