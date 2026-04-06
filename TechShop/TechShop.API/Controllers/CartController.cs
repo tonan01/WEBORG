@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TechShop.Application.DTOs;
-using TechShop.Application.Services;
+using TechShop.Application.Interfaces;
 
 namespace TechShop.API.Controllers;
 

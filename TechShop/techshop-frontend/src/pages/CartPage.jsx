@@ -52,11 +52,11 @@ function CartPage() {
         setLoading(true);
         try {
             await orderService.checkout(checkoutData);
-            toast.success('Order placed successfully!');
+            toast.success('Đặt hàng thành công!');
             setCart(null);
             navigate('/history');
         } catch (err) {
-            const errorMsg = err.response?.data?.message || err.response?.data || 'Checkout failed. Please check stock or login.';
+            const errorMsg = err.response?.data?.message || err.response?.data || 'Đặt hàng thất bại. Vui lòng kiểm tra kho hàng hoặc đăng nhập.';
             toast.error(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
         } finally {
             setLoading(false);
@@ -67,8 +67,8 @@ function CartPage() {
         return (
             <Container className="py-5 text-center animate-fade">
                 <div className="glass-card p-5">
-                    <h2 className="mb-4">Your cart is empty</h2>
-                    <Button variant="primary" onClick={() => navigate('/')}>Start Shopping</Button>
+                    <h2 className="mb-4">Giỏ hàng của bạn đang trống</h2>
+                    <Button variant="primary" onClick={() => navigate('/')}>Bắt đầu mua sắm</Button>
                 </div>
             </Container>
         );
@@ -76,27 +76,27 @@ function CartPage() {
 
     return (
         <Container className="py-4 animate-fade">
-            <h2 className="mb-4 display-6">Shopping Cart</h2>
+            <h2 className="mb-4 display-6">Giỏ hàng</h2>
             <Row>
                 <Col lg={8}>
                     <div className="glass-card p-4 mb-4">
                         <Table responsive hover className="mb-0">
                             <thead>
                                 <tr>
-                                    <th className="border-0">Product</th>
-                                    <th className="border-0">Price</th>
-                                    <th className="border-0">Quantity</th>
-                                    <th className="border-0 text-end">Total</th>
+                                    <th className="border-0">Sản phẩm</th>
+                                    <th className="border-0">Giá</th>
+                                    <th className="border-0">Số lượng</th>
+                                    <th className="border-0 text-end">Tổng cộng</th>
                                     <th className="border-0"></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {cart.items.map(item => (
+                                 {cart.items.map(item => (
                                     <tr key={item.id}>
                                         <td className="py-3">
                                             <div className="fw-bold">{item.productName}</div>
                                         </td>
-                                        <td className="py-3">${item.unitPrice}</td>
+                                        <td className="py-3">{new Intl.NumberFormat('vi-VN').format(item.unitPrice)} VNĐ</td>
                                         <td className="py-3">
                                             <div className="d-flex align-items-center">
                                                 <Button size="sm" variant="light" onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}>-</Button>
@@ -104,7 +104,7 @@ function CartPage() {
                                                 <Button size="sm" variant="light" onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>+</Button>
                                             </div>
                                         </td>
-                                        <td className="py-3 text-end fw-bold">${(item.unitPrice * item.quantity).toFixed(2)}</td>
+                                        <td className="py-3 text-end fw-bold">{new Intl.NumberFormat('vi-VN').format(item.unitPrice * item.quantity)} VNĐ</td>
                                         <td className="py-3 text-end">
                                             <Button variant="outline-danger" size="sm" onClick={() => handleRemove(item.id)}>×</Button>
                                         </td>
@@ -118,67 +118,67 @@ function CartPage() {
                 <Col lg={4}>
                     <Card className="glass-card border-0 mb-4">
                         <Card.Body className="p-4">
-                            <h4 className="mb-4">Order Summary</h4>
+                            <h4 className="mb-4">Tóm tắt đơn hàng</h4>
                             <div className="d-flex justify-content-between mb-2">
-                                <span className="text-muted">Subtotal</span>
-                                <span className="fw-bold">${cart.totalPrice.toFixed(2)}</span>
+                                <span className="text-muted">Tạm tính</span>
+                                <span className="fw-bold">{new Intl.NumberFormat('vi-VN').format(cart.totalPrice)} VNĐ</span>
                             </div>
                             <div className="d-flex justify-content-between mb-4">
-                                <span className="text-muted">Shipping</span>
-                                <span className="text-success fw-bold">Free</span>
+                                <span className="text-muted">Giao hàng</span>
+                                <span className="text-success fw-bold">Miễn phí</span>
                             </div>
                             <hr />
                             <div className="d-flex justify-content-between mb-4">
-                                <h5 className="mb-0">Total</h5>
-                                <h5 className="text-primary">${cart.totalPrice.toFixed(2)}</h5>
+                                <h5 className="mb-0">Tổng cộng</h5>
+                                <h5 className="text-primary">{new Intl.NumberFormat('vi-VN').format(cart.totalPrice)} VNĐ</h5>
                             </div>
 
                             {!showCheckout ? (
                                 <Button variant="primary" className="w-100 py-3 shadow" onClick={() => setShowCheckout(true)}>
-                                    Proceed to Checkout
+                                    Tiến hành thanh toán
                                 </Button>
                             ) : (
-                                <Form onSubmit={handleCheckout} className="mt-4">
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold">Shipping Address</Form.Label>
-                                        <Form.Control 
-                                            required 
-                                            className="bg-transparent"
-                                            placeholder="Your full address..."
-                                            value={checkoutData.shippingAddress}
-                                            onChange={(e) => setCheckoutData({...checkoutData, shippingAddress: e.target.value})}
-                                        />
-                                    </Form.Group>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold">Payment Method</Form.Label>
-                                        <Form.Select 
-                                            className="bg-transparent"
-                                            value={checkoutData.paymentMethod}
-                                            onChange={(e) => setCheckoutData({...checkoutData, paymentMethod: e.target.value})}
-                                        >
-                                            <option value="COD">Cash on Delivery (COD)</option>
-                                            <option value="BankTransfer">Bank Transfer</option>
-                                            <option value="CreditCard">Credit Card</option>
-                                        </Form.Select>
-                                    </Form.Group>
-                                    <Form.Group className="mb-4">
-                                        <Form.Label className="small fw-bold">Order Notes</Form.Label>
-                                        <Form.Control 
-                                            as="textarea"
-                                            rows={2}
-                                            className="bg-transparent"
-                                            placeholder="Special instructions..."
-                                            value={checkoutData.note}
-                                            onChange={(e) => setCheckoutData({...checkoutData, note: e.target.value})}
-                                        />
-                                    </Form.Group>
-                                    <Button variant="primary" className="w-100 py-3 shadow" type="submit" disabled={loading}>
-                                        {loading ? 'Processing...' : 'Place Order Now'}
-                                    </Button>
-                                    <Button variant="link" className="w-100 text-muted mt-2 text-decoration-none" onClick={() => setShowCheckout(false)}>
-                                        Back to Cart
-                                    </Button>
-                                </Form>
+                                    <Form onSubmit={handleCheckout} className="mt-4">
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Địa chỉ giao hàng</Form.Label>
+                                            <Form.Control 
+                                                required 
+                                                className="bg-transparent"
+                                                placeholder="Địa chỉ đầy đủ của bạn..."
+                                                value={checkoutData.shippingAddress}
+                                                onChange={(e) => setCheckoutData({...checkoutData, shippingAddress: e.target.value})}
+                                            />
+                                        </Form.Group>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Phương thức thanh toán</Form.Label>
+                                            <Form.Select 
+                                                className="bg-transparent"
+                                                value={checkoutData.paymentMethod}
+                                                onChange={(e) => setCheckoutData({...checkoutData, paymentMethod: e.target.value})}
+                                            >
+                                                <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                                                <option value="BankTransfer">Chuyển khoản ngân hàng</option>
+                                                <option value="CreditCard">Thẻ tín dụng</option>
+                                            </Form.Select>
+                                        </Form.Group>
+                                        <Form.Group className="mb-4">
+                                            <Form.Label className="small fw-bold">Ghi chú đơn hàng</Form.Label>
+                                            <Form.Control 
+                                                as="textarea"
+                                                rows={2}
+                                                className="bg-transparent"
+                                                placeholder="Hướng dẫn đặc biệt..."
+                                                value={checkoutData.note}
+                                                onChange={(e) => setCheckoutData({...checkoutData, note: e.target.value})}
+                                            />
+                                        </Form.Group>
+                                        <Button variant="primary" className="w-100 py-3 shadow" type="submit" disabled={loading}>
+                                            {loading ? 'Đang xử lý...' : 'Đặt hàng ngay'}
+                                        </Button>
+                                        <Button variant="link" className="w-100 text-muted mt-2 text-decoration-none" onClick={() => setShowCheckout(false)}>
+                                            Quay lại giỏ hàng
+                                        </Button>
+                                    </Form>
                             )}
                         </Card.Body>
                     </Card>

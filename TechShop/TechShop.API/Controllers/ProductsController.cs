@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using TechShop.Application.DTOs;
-using TechShop.Application.Services;
+using TechShop.Application.Interfaces;
 
 namespace TechShop.API.Controllers;
 
@@ -18,17 +18,23 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll([FromQuery] string? keyword = null, [FromQuery] int? categoryId = null)
+    public async Task<ActionResult<PagedResult<ProductDto>>> GetAll(
+        [FromQuery] string? keyword = null, 
+        [FromQuery] int? categoryId = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 12)
     {
-        var products = await _productService.GetAllProductsAsync(keyword, categoryId);
+        var products = await _productService.GetAllProductsAsync(keyword, categoryId, page, pageSize);
         return Ok(products);
     }
 
     [HttpGet("all-with-deleted")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> GetAllWithDeleted()
+    public async Task<IActionResult> GetAllWithDeleted(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var products = await _productService.GetAllIncludingDeletedAsync();
+        var products = await _productService.GetAllIncludingDeletedAsync(page, pageSize);
         return Ok(products);
     }
 

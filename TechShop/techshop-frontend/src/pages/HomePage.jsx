@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Card, Button, Row, Col, Form, InputGroup, Container, Badge } from 'react-bootstrap';
+import PaginationComponent from '../components/PaginationComponent';
 import { useNavigate } from 'react-router-dom';
 import { productService, cartService, categoryService } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
@@ -7,6 +8,8 @@ import { toast } from 'react-hot-toast';
 
 function HomePage() {
     const [products, setProducts] = useState([]);
+    const [totalPages, setTotalPages] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [keyword, setKeyword] = useState('');
@@ -34,14 +37,17 @@ function HomePage() {
         return roots;
     };
 
-    const loadData = async () => {
+    const loadData = async (page = 1) => {
         setLoading(true);
         try {
             const [prodRes, catRes] = await Promise.all([
-                productService.getAll(keyword, selectedCategory),
+                productService.getAll(keyword, selectedCategory, page, 12),
                 categoryService.getAll()
             ]);
-            setProducts(prodRes.data);
+            // Backend trả về PagedResult { items, totalCount, pageNumber, pageSize, totalPages }
+            setProducts(prodRes.data.items);
+            setTotalPages(prodRes.data.totalPages);
+            setCurrentPage(prodRes.data.pageNumber);
             setCategories(catRes.data);
         } catch (err) {
             console.error('Error loading data', err);
@@ -51,25 +57,31 @@ function HomePage() {
     };
 
     useEffect(() => {
-        loadData();
+        loadData(1);
     }, [selectedCategory]);
 
     const handleSearch = (e) => {
         e.preventDefault();
-        loadData();
+        loadData(1);
+    };
+
+    const handlePageChange = (page) => {
+        if (page >= 1 && page <= totalPages) {
+            loadData(page);
+        }
     };
 
     const handleAddToCart = async (productId) => {
         if (!user) {
-            toast.error('Please login to add to cart');
+            toast.error('Vui lòng đăng nhập để thêm vào giỏ hàng');
             navigate('/login');
             return;
         }
         try {
             await cartService.add(productId, 1);
-            toast.success('Added to cart!');
+            toast.success('Đã thêm vào giỏ hàng!');
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Error adding to cart');
+            toast.error(err.response?.data?.message || 'Lỗi khi thêm vào giỏ hàng');
         }
     };
 
@@ -79,20 +91,20 @@ function HomePage() {
                 {/* Sidebar Categories */}
                 <Col md={3} className="mb-4">
                     <div className="glass-card p-3 sticky-top" style={{ top: '100px', zIndex: 10 }}>
-                        <h5 className="mb-3 px-2">Categories</h5>
+                        <h5 className="mb-3 px-2">Danh mục</h5>
                         {selectedCategory === null ? (
                             <div 
                                 className="category-item active"
                                 onClick={() => setSelectedCategory(null)}
                             >
-                                All Products
+                                Tất cả sản phẩm
                             </div>
                         ) : (
                             <div 
                                 className="category-item"
                                 onClick={() => setSelectedCategory(null)}
                             >
-                                All Products
+                                Tất cả sản phẩm
                             </div>
                         )}
 
@@ -125,19 +137,19 @@ function HomePage() {
                         <h2 className="mb-3">
                             {selectedCategory 
                                 ? categories.find(c => c.id === selectedCategory)?.name 
-                                : 'All Gadgets'}
+                                : 'Tất cả thiết bị'}
                         </h2>
                         
                         <Form onSubmit={handleSearch} className="mb-3">
                             <InputGroup className="glass-card" style={{ borderRadius: '12px', overflow: 'hidden' }}>
                                 <Form.Control 
                                     className="border-0 bg-transparent py-2 px-3"
-                                    placeholder="Search gadgets..." 
+                                    placeholder="Tìm kiếm thiết bị..." 
                                     value={keyword}
                                     onChange={(e) => setKeyword(e.target.value)}
                                 />
                                 <Button type="submit" variant="primary" style={{ borderRadius: '0 12px 12px 0' }}>
-                                    Search
+                                    Tìm kiếm
                                 </Button>
                             </InputGroup>
                         </Form>
@@ -148,10 +160,11 @@ function HomePage() {
                             <div className="spinner-border text-primary" role="status"></div>
                         </div>
                     ) : (
-                        <Row>
+                        <>
+                            <Row>
                             {products.length === 0 ? (
                                 <Col className="text-center py-5">
-                                    <p className="text-muted">No gadgets found in this category.</p>
+                                    <p className="text-muted">Không tìm thấy thiết bị nào trong danh mục này.</p>
                                 </Col>
                             ) : products.map(p => (
                                 <Col lg={4} md={6} key={p.id} className="mb-4">
@@ -183,9 +196,11 @@ function HomePage() {
                                             <Card.Text className="text-muted small mb-3" style={{ height: '40px', overflow: 'hidden' }}>
                                                 {p.description}
                                             </Card.Text>
-                                            <div className="d-flex justify-content-between align-items-center">
-                                                <h4 className="text-primary mb-0">${p.price}</h4>
-                                                <span className="small text-muted">{p.stock} in stock</span>
+                                             <div className="d-flex justify-content-between align-items-center">
+                                                <h4 className="text-primary mb-0">
+                                                    {new Intl.NumberFormat('vi-VN').format(p.price)} VNĐ
+                                                </h4>
+                                                <span className="small text-muted">{p.stock} trong kho</span>
                                             </div>
                                         </Card.Body>
                                         <Card.Footer className="bg-transparent border-0 pb-3 p-3">
@@ -195,14 +210,14 @@ function HomePage() {
                                                     onClick={() => handleAddToCart(p.id)}
                                                     disabled={p.stock <= 0}
                                                 >
-                                                    {p.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                                                    {p.stock > 0 ? 'Thêm vào giỏ' : 'Hết hàng'}
                                                 </Button>
                                                 <Button 
                                                     variant="outline-primary" 
                                                     size="sm"
                                                     onClick={() => navigate(`/product/${p.id}`)}
                                                 >
-                                                    View Details
+                                                    Xem chi tiết
                                                 </Button>
                                             </div>
                                         </Card.Footer>
@@ -210,7 +225,14 @@ function HomePage() {
                                 </Col>
                             ))}
                         </Row>
-                    )}
+                        <PaginationComponent 
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                            size="md"
+                        />
+                    </>
+                )}
                 </Col>
             </Row>
         </Container>

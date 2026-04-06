@@ -60,6 +60,22 @@ public class Repository<T> : IRepository<T> where T : class
         return await _dbSet.IgnoreQueryFilters().FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
     }
 
+    public IQueryable<T> GetQueryable(params Expression<Func<T, object>>[] includes)
+    {
+        IQueryable<T> query = _dbSet;
+        foreach (var include in includes)
+            query = query.Include(include);
+        return query;
+    }
+
+    public IQueryable<T> GetQueryableIgnoreFilters(params Expression<Func<T, object>>[] includes)
+    {
+        IQueryable<T> query = _dbSet.IgnoreQueryFilters();
+        foreach (var include in includes)
+            query = query.Include(include);
+        return query;
+    }
+
     /// <summary>Query DB trực tiếp — không load cả bảng vào memory</summary>
     public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate)
     {

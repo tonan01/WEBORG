@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TechShop.Domain.Entities;
-using TechShop.Application.Services;
+using TechShop.Application.Interfaces;
 
 namespace TechShop.Infrastructure.Data;
 

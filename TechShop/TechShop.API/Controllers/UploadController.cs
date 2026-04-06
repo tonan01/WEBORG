@@ -2,13 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using TechShop.Application.Services;
+using TechShop.Application.Interfaces;
 
 namespace TechShop.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class UploadController : ControllerBase
 {
     private readonly ICloudinaryService _cloudinaryService;

@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Tabs, Tab, Table, Button, Modal, Form, Badge, Card, Row, Col } from 'react-bootstrap';
+import { Container, Tabs, Tab, Button, Modal, Form, Card, Row, Col } from 'react-bootstrap';
 import { productService, categoryService, orderService, uploadService } from '../services/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { toast } from 'react-hot-toast';
 
+// Sub-components
+import AdminProductTab from './admin/AdminProductTab';
+import AdminCategoryTab from './admin/AdminCategoryTab';
+import AdminOrderTab from './admin/AdminOrderTab';
+
 function AdminPage() {
     console.log('AdminPage Component Rendering...');
     const [products, setProducts] = useState([]);
+    const [prodPage, setProdPage] = useState(1);
+    const [prodTotalPages, setProdTotalPages] = useState(1);
     const [prodFilter, setProdFilter] = useState('all'); // all, active, deleted
     const [categories, setCategories] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [orderPage, setOrderPage] = useState(1);
+    const [orderTotalPages, setOrderTotalPages] = useState(1);
     const [stats, setStats] = useState(null);
     const [activeTab, setActiveTab] = useState('dashboard');
     const [uploading, setUploading] = useState(false);
@@ -35,14 +44,16 @@ function AdminPage() {
     const loadData = async () => {
         try {
             const [prodRes, catRes, orderRes, statsRes] = await Promise.all([
-                productService.getAllWithDeleted(),
+                productService.getAllWithDeleted(prodPage, 10),
                 categoryService.getAll(),
-                orderService.getAll(),
+                orderService.getAll(orderPage, 10),
                 orderService.getAdminStats()
             ]);
-            setProducts(prodRes.data);
+            setProducts(prodRes.data.items);
+            setProdTotalPages(prodRes.data.totalPages);
             setCategories(catRes.data);
-            setOrders(orderRes.data);
+            setOrders(orderRes.data.items);
+            setOrderTotalPages(orderRes.data.totalPages);
             setStats(statsRes.data);
         } catch (err) {
             console.error('Error loading admin data', err);
@@ -51,7 +62,7 @@ function AdminPage() {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [prodPage, orderPage]);
 
     // --- Product Handlers ---
     const handleImageUpload = async (e) => {
@@ -158,7 +169,7 @@ function AdminPage() {
 
     return (
         <Container className="py-4 animate-fade">
-            <h2 className="mb-4 display-6">Admin Control Panel</h2>
+            <h2 className="mb-4 display-6">Bảng điều khiển quản trị</h2>
             
             <div className="glass-card mb-4 overflow-hidden">
                 <Tabs
@@ -166,182 +177,46 @@ function AdminPage() {
                     onSelect={(k) => setActiveTab(k)}
                     className="border-0 p-2 custom-tabs border-bottom"
                 >
-                    <Tab eventKey="products" title="Products">
-                        <div className="p-4">
-                            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                                <div className="d-flex align-items-center gap-3">
-                                    <h5 className="mb-0">Products ({products.length})</h5>
-                                    <Form.Select 
-                                        size="sm" 
-                                        style={{ width: '150px' }}
-                                        value={prodFilter}
-                                        onChange={(e) => setProdFilter(e.target.value)}
-                                    >
-                                        <option value="all">All Status</option>
-                                        <option value="active">Active Only</option>
-                                        <option value="deleted">Deleted Only</option>
-                                    </Form.Select>
-                                </div>
-                                <Button variant="primary" onClick={() => {
-                                    setEditingProduct(null);
-                                    setProductForm({ name: '', description: '', price: 0, stock: 0, sku: '', imageUrl: '', categoryId: '' });
-                                    setShowProdModal(true);
-                                }}>+ New Product</Button>
-                            </div>
-                            <Table responsive hover className="align-middle">
-                                <thead className="bg-light text-muted small uppercase">
-                                    <tr>
-                                        <th>SKU/Name</th>
-                                        <th>Category</th>
-                                        <th>Price</th>
-                                        <th>Stock</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {products
-                                        .filter(p => {
-                                            if (prodFilter === 'active') return !p.isDeleted;
-                                            if (prodFilter === 'deleted') return p.isDeleted;
-                                            return true;
-                                        })
-                                        .map(p => (
-                                        <tr key={p.id} className={p.isDeleted ? 'table-light opacity-75' : ''}>
-                                            <td>
-                                                <div className={`fw-bold ${p.isDeleted ? 'text-decoration-line-through text-danger' : ''}`}>
-                                                    {p.name} 
-                                                    {p.isDeleted && <Badge bg="secondary" className="ms-1">Deleted</Badge>}
-                                                </div>
-                                                <div className="small text-muted">{p.sku}</div>
-                                            </td>
-                                            <td><Badge bg="light" text="primary" className="rounded-pill p-1 px-3">{p.categoryName}</Badge></td>
-                                            <td className={`fw-bold ${p.isDeleted ? 'text-decoration-line-through' : ''}`}>${p.price}</td>
-                                            <td>
-                                                <Badge bg={p.stock < 5 ? 'warning' : 'light'} text={p.stock < 5 ? 'white' : 'dark'}>{p.stock}</Badge>
-                                            </td>
-                                            <td>
-                                                {!p.isDeleted ? (
-                                                    <>
-                                                        <Button size="sm" variant="outline-info" className="me-2" onClick={() => {
-                                                            setEditingProduct(p);
-                                                            setProductForm({
-                                                                ...p,
-                                                                categoryId: p.categoryId || ''
-                                                            });
-                                                            setShowProdModal(true);
-                                                        }}>Edit</Button>
-                                                        <Button size="sm" variant="outline-danger" onClick={() => deleteProduct(p.id)}>Delete</Button>
-                                                    </>
-                                                ) : (
-                                                    <Button size="sm" variant="outline-success" onClick={() => restoreProduct(p.id)}>Restore</Button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
-                        </div>
+                    <Tab eventKey="products" title="Sản phẩm">
+                        <AdminProductTab 
+                            products={products}
+                            prodFilter={prodFilter}
+                            setProdFilter={setProdFilter}
+                            setProdPage={setProdPage}
+                            prodPage={prodPage}
+                            prodTotalPages={prodTotalPages}
+                            setEditingProduct={setEditingProduct}
+                            setProductForm={setProductForm}
+                            setShowProdModal={setShowProdModal}
+                            deleteProduct={deleteProduct}
+                            restoreProduct={restoreProduct}
+                        />
                     </Tab>
 
-                    <Tab eventKey="categories" title="Categories">
-                        <div className="p-4">
-                            <div className="d-flex justify-content-between mb-4">
-                                <h5>Categories ({categories.length})</h5>
-                                <Button variant="primary" onClick={() => {
-                                    setEditingCategory(null);
-                                    setCategoryForm({ name: '', description: '', imageUrl: '', parentCategoryId: '' });
-                                    setShowCatModal(true);
-                                }}>+ New Category</Button>
-                            </div>
-                            <Table responsive hover className="align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Parent</th>
-                                        <th>Description</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {categories.map(c => (
-                                        <tr key={c.id}>
-                                            <td className="fw-bold">{c.name}</td>
-                                            <td>{c.parentCategoryName || <span className="text-muted small">Root</span>}</td>
-                                            <td className="small text-muted">{c.description || '-'}</td>
-                                            <td>
-                                                <Button size="sm" variant="outline-info" className="me-2" onClick={() => {
-                                                    setEditingCategory(c);
-                                                    setCategoryForm({ ...c, parentCategoryId: c.parentCategoryId || '' });
-                                                    setShowCatModal(true);
-                                                }}>Edit</Button>
-                                                <Button size="sm" variant="outline-danger" onClick={() => deleteCategory(c.id)}>Delete</Button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
-                        </div>
+                    <Tab eventKey="categories" title="Danh mục">
+                        <AdminCategoryTab 
+                            categories={categories}
+                            setEditingCategory={setEditingCategory}
+                            setCategoryForm={setCategoryForm}
+                            setShowCatModal={setShowCatModal}
+                            deleteCategory={deleteCategory}
+                        />
                     </Tab>
 
-                    <Tab eventKey="orders" title="Client Orders">
-                        <div className="p-4">
-                            <div className="d-flex justify-content-between mb-4">
-                                <h5>All Orders ({orders.length})</h5>
-                                <Button variant="outline-secondary" onClick={loadData}>Refresh</Button>
-                            </div>
-                            <Table responsive hover className="align-middle">
-                                <thead className="bg-light text-muted small uppercase">
-                                    <tr>
-                                        <th>Order ID</th>
-                                        <th>Date</th>
-                                        <th>Status</th>
-                                        <th>Total</th>
-                                        <th>Update Status</th>
-                                        <th>Details</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {orders.map(o => (
-                                        <tr key={o.id}>
-                                            <td className="fw-bold text-muted">#ORD-{o.id}</td>
-                                            <td className="small">{new Date(o.orderDate).toLocaleDateString()}</td>
-                                            <td>
-                                                <Badge bg={
-                                                    o.status === 'Pending' ? 'warning' : 
-                                                    o.status === 'Shipped' ? 'info' : 
-                                                    o.status === 'Delivered' ? 'success' : 'danger'
-                                                } className="rounded-pill px-3">
-                                                    {o.status}
-                                                </Badge>
-                                            </td>
-                                            <td className="fw-bold text-primary">${o.totalAmount}</td>
-                                            <td style={{ width: '180px' }}>
-                                                <Form.Select 
-                                                    size="sm" 
-                                                    className="bg-light rounded-pill px-3 border-0"
-                                                    value={o.status}
-                                                    onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value)}
-                                                >
-                                                    <option value="Pending">Pending</option>
-                                                    <option value="Shipped">Shipped</option>
-                                                    <option value="Delivered">Delivered</option>
-                                                    <option value="Cancelled">Cancelled</option>
-                                                </Form.Select>
-                                            </td>
-                                            <td>
-                                                <Button size="sm" variant="outline-dark" onClick={() => {
-                                                    setSelectedOrder(o);
-                                                    setShowOrderModal(true);
-                                                }}>View Detail</Button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
-                        </div>
+                    <Tab eventKey="orders" title="Đơn hàng khách hàng">
+                        <AdminOrderTab 
+                            orders={orders}
+                            orderPage={orderPage}
+                            setOrderPage={setOrderPage}
+                            orderTotalPages={orderTotalPages}
+                            loadData={loadData}
+                            handleUpdateOrderStatus={handleUpdateOrderStatus}
+                            setSelectedOrder={setSelectedOrder}
+                            setShowOrderModal={setShowOrderModal}
+                        />
                     </Tab>
 
-                    <Tab eventKey="dashboard" title="Dashboard">
+                    <Tab eventKey="dashboard" title="Tổng quan">
                         <div className="p-4">
                             {stats ? (
                                 <>
@@ -349,15 +224,15 @@ function AdminPage() {
                                         <Col md={3}>
                                             <Card className="text-center border-0 bg-light shadow-sm mb-3">
                                                 <Card.Body>
-                                                    <div className="text-muted small mb-1">Total Revenue</div>
-                                                    <h3 className="text-primary mb-0">${stats.totalRevenue.toLocaleString()}</h3>
+                                                    <div className="text-muted small mb-1">Tổng doanh thu</div>
+                                                    <h3 className="text-primary mb-0">{new Intl.NumberFormat('vi-VN').format(stats.totalRevenue)} VNĐ</h3>
                                                 </Card.Body>
                                             </Card>
                                         </Col>
                                         <Col md={3}>
                                             <Card className="text-center border-0 bg-light shadow-sm mb-3">
                                                 <Card.Body>
-                                                    <div className="text-muted small mb-1">Total Orders</div>
+                                                    <div className="text-muted small mb-1">Tổng đơn hàng</div>
                                                     <h3 className="text-success mb-0">{stats.totalOrders}</h3>
                                                 </Card.Body>
                                             </Card>
@@ -365,7 +240,7 @@ function AdminPage() {
                                         <Col md={3}>
                                             <Card className="text-center border-0 bg-light shadow-sm mb-3">
                                                 <Card.Body>
-                                                    <div className="text-muted small mb-1">Products</div>
+                                                    <div className="text-muted small mb-1">Sản phẩm</div>
                                                     <h3 className="text-info mb-0">{stats.totalProducts}</h3>
                                                 </Card.Body>
                                             </Card>
@@ -373,7 +248,7 @@ function AdminPage() {
                                         <Col md={3}>
                                             <Card className="text-center border-0 bg-light shadow-sm mb-3">
                                                 <Card.Body>
-                                                    <div className="text-muted small mb-1">Categories</div>
+                                                    <div className="text-muted small mb-1">Danh mục</div>
                                                     <h3 className="text-purple mb-0" style={{ color: '#a855f7' }}>{stats.totalCategories}</h3>
                                                 </Card.Body>
                                             </Card>
@@ -381,13 +256,13 @@ function AdminPage() {
                                     </Row>
 
                                     <Card className="border-0 shadow-sm p-4 mb-4">
-                                        <h5 className="mb-4">Monthly Revenue Growth</h5>
+                                        <h5 className="mb-4">Tăng trưởng doanh thu hàng tháng</h5>
                                         <div style={{ width: '100%', height: 300 }}>
                                             <ResponsiveContainer>
                                                 <BarChart data={stats.monthlyRevenue}>
                                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                                     <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                                                    <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `$${val}`} />
+                                                    <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${new Intl.NumberFormat('vi-VN').format(val)} VNĐ`} />
                                                     <Tooltip 
                                                         cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
                                                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
@@ -413,37 +288,37 @@ function AdminPage() {
             {/* View Order Modal */}
             <Modal show={showOrderModal} onHide={() => setShowOrderModal(false)} centered size="lg">
                 <Modal.Header closeButton className="border-0">
-                    <Modal.Title>Order Detail #ORD-{selectedOrder?.id}</Modal.Title>
+                    <Modal.Title>Chi tiết đơn hàng #ORD-{selectedOrder?.id}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="px-4 pb-4">
                     {selectedOrder && (
                         <Row>
                             <Col md={7}>
-                                <h6 className="text-primary mb-3">Items Purchased</h6>
+                                <h6 className="text-primary mb-3">Sản phẩm đã mua</h6>
                                 <Table size="sm" borderless>
                                     <tbody>
                                         {selectedOrder.details.map((d, i) => (
                                             <tr key={i} className="border-bottom pb-2">
                                                 <td className="py-2"><b>{d.productName}</b> <br/> <small className="text-muted">Qty: {d.quantity}</small></td>
-                                                <td className="text-end py-2">${d.unitPrice}</td>
-                                                <td className="text-end py-2 fw-bold">${d.unitPrice * d.quantity}</td>
+                                                <td className="text-end py-2">{new Intl.NumberFormat('vi-VN').format(d.unitPrice)} VNĐ</td>
+                                                <td className="text-end py-2 fw-bold">{new Intl.NumberFormat('vi-VN').format(d.unitPrice * d.quantity)} VNĐ</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </Table>
                                 <div className="d-flex justify-content-between h5 mt-4">
-                                    <span>Grand Total:</span>
-                                    <span className="text-primary">${selectedOrder.totalAmount}</span>
+                                    <span>Tổng cộng:</span>
+                                    <span className="text-primary">{new Intl.NumberFormat('vi-VN').format(selectedOrder.totalAmount)} VNĐ</span>
                                 </div>
                             </Col>
                             <Col md={5} className="border-start ps-4">
-                                <h6 className="text-primary mb-3">Customer Info</h6>
-                                <p className="mb-1 fw-bold">Shipping Address:</p>
+                                <h6 className="text-primary mb-3">Thông tin khách hàng</h6>
+                                <p className="mb-1 fw-bold">Địa chỉ giao nhận:</p>
                                 <p className="text-muted small mb-3">{selectedOrder.shippingAddress}</p>
-                                <p className="mb-1 fw-bold">Payment Method:</p>
+                                <p className="mb-1 fw-bold">Phương thức thanh toán:</p>
                                 <p className="text-muted small mb-3">{selectedOrder.paymentMethod}</p>
-                                <p className="mb-1 fw-bold">Notes from customer:</p>
-                                <p className="text-muted small">{selectedOrder.note || 'No notes left.'}</p>
+                                <p className="mb-1 fw-bold">Ghi chú từ khách hàng:</p>
+                                <p className="text-muted small">{selectedOrder.note || 'Không có ghi chú.'}</p>
                             </Col>
                         </Row>
                     )}
@@ -453,23 +328,23 @@ function AdminPage() {
             {/* Category Modal */}
             <Modal show={showCatModal} onHide={() => setShowCatModal(false)} centered>
                 <Modal.Header closeButton className="border-0">
-                    <Modal.Title>{editingCategory ? 'Edit Category' : 'New Category'}</Modal.Title>
+                    <Modal.Title>{editingCategory ? 'Sửa Danh mục' : 'Thêm Danh mục'}</Modal.Title>
                 </Modal.Header>
                 <Form onSubmit={handleCategorySubmit}>
                     <Modal.Body className="px-4">
-                        <Form.Group className="mb-3"><Form.Control placeholder="Category Name" value={categoryForm.name} onChange={e => setCategoryForm({...categoryForm, name: e.target.value})} required /></Form.Group>
+                        <Form.Group className="mb-3"><Form.Control placeholder="Tên danh mục" value={categoryForm.name} onChange={e => setCategoryForm({...categoryForm, name: e.target.value})} required /></Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Select value={categoryForm.parentCategoryId} onChange={e => setCategoryForm({...categoryForm, parentCategoryId: e.target.value})}>
-                                <option value="">No Parent (Root)</option>
+                                <option value="">Không có (Danh mục gốc)</option>
                                 {categories.filter(c => c.id !== editingCategory?.id).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                             </Form.Select>
                         </Form.Group>
-                        <Form.Group className="mb-3"><Form.Control as="textarea" placeholder="Description" value={categoryForm.description} onChange={e => setCategoryForm({...categoryForm, description: e.target.value})} /></Form.Group>
-                        <Form.Group className="mb-3"><Form.Control placeholder="Image URL" value={categoryForm.imageUrl} onChange={e => setCategoryForm({...categoryForm, imageUrl: e.target.value})} /></Form.Group>
+                        <Form.Group className="mb-3"><Form.Control as="textarea" placeholder="Mô tả" value={categoryForm.description} onChange={e => setCategoryForm({...categoryForm, description: e.target.value})} /></Form.Group>
+                        <Form.Group className="mb-3"><Form.Control placeholder="Đường dẫn ảnh (URL)" value={categoryForm.imageUrl} onChange={e => setCategoryForm({...categoryForm, imageUrl: e.target.value})} /></Form.Group>
                     </Modal.Body>
                     <Modal.Footer className="border-0">
-                        <Button variant="light" onClick={() => setShowCatModal(false)}>Cancel</Button>
-                        <Button variant="primary" type="submit">Save Category</Button>
+                        <Button variant="light" onClick={() => setShowCatModal(false)}>Hủy</Button>
+                        <Button variant="primary" type="submit">Lưu Danh mục</Button>
                     </Modal.Footer>
                 </Form>
             </Modal>
@@ -477,35 +352,35 @@ function AdminPage() {
             {/* Product Modal */}
             <Modal show={showProdModal} onHide={() => setShowProdModal(false)} size="lg" centered>
                 <Modal.Header closeButton className="border-0">
-                    <Modal.Title>{editingProduct ? 'Edit Product' : 'New Product'}</Modal.Title>
+                    <Modal.Title>{editingProduct ? 'Sửa Sản phẩm' : 'Thêm Sản phẩm'}</Modal.Title>
                 </Modal.Header>
                 <Form onSubmit={handleProductSubmit}>
                     <Modal.Body className="px-4">
                         <Row>
-                            <Col md={12}><Form.Group className="mb-3"><Form.Control placeholder="Name" value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} required /></Form.Group></Col>
-                            <Col md={6}><Form.Group className="mb-3"><Form.Control placeholder="SKU" value={productForm.sku} onChange={e => setProductForm({...productForm, sku: e.target.value})} required /></Form.Group></Col>
+                            <Col md={12}><Form.Group className="mb-3"><Form.Control placeholder="Tên sản phẩm" value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} required /></Form.Group></Col>
+                            <Col md={6}><Form.Group className="mb-3"><Form.Control placeholder="Mã SKU" value={productForm.sku} onChange={e => setProductForm({...productForm, sku: e.target.value})} required /></Form.Group></Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Select value={productForm.categoryId} onChange={e => setProductForm({...productForm, categoryId: e.target.value})} required>
-                                        <option value="">Select Category</option>
+                                        <option value="">Chọn Danh mục</option>
                                         {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
-                            <Col md={6}><Form.Group className="mb-3"><Form.Control type="number" placeholder="Price" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} required /></Form.Group></Col>
-                            <Col md={6}><Form.Group className="mb-3"><Form.Control type="number" placeholder="Stock" value={productForm.stock} onChange={e => setProductForm({...productForm, stock: e.target.value})} required /></Form.Group></Col>
-                            <Col md={12}><Form.Group className="mb-3"><Form.Control as="textarea" placeholder="Description" value={productForm.description} onChange={e => setProductForm({...productForm, description: e.target.value})} /></Form.Group></Col>
+                            <Col md={6}><Form.Group className="mb-3"><Form.Control type="number" placeholder="Giá" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} required /></Form.Group></Col>
+                            <Col md={6}><Form.Group className="mb-3"><Form.Control type="number" placeholder="Số lượng kho" value={productForm.stock} onChange={e => setProductForm({...productForm, stock: e.target.value})} required /></Form.Group></Col>
+                            <Col md={12}><Form.Group className="mb-3"><Form.Control as="textarea" placeholder="Mô tả sản phẩm" value={productForm.description} onChange={e => setProductForm({...productForm, description: e.target.value})} /></Form.Group></Col>
                             <Col md={12}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Product Image</Form.Label>
+                                    <Form.Label className="small fw-bold">Hình ảnh sản phẩm</Form.Label>
                                     <div className="d-flex gap-2 align-items-start">
                                         <div className="flex-grow-1">
                                             <Form.Control 
-                                                placeholder="Image URL" 
+                                                placeholder="Đường dẫn ảnh (URL)" 
                                                 value={productForm.imageUrl} 
                                                 onChange={e => setProductForm({...productForm, imageUrl: e.target.value})} 
                                             />
-                                            <Form.Text className="text-muted">Or upload a new file below</Form.Text>
+                                            <Form.Text className="text-muted">Hoặc tải lên file mới bên dưới</Form.Text>
                                         </div>
                                         {productForm.imageUrl && (
                                             <img 
@@ -525,14 +400,14 @@ function AdminPage() {
                                         onChange={handleImageUpload}
                                         disabled={uploading}
                                     />
-                                    {uploading && <div className="small text-primary mt-1">Uploading to Cloudinary...</div>}
+                                    {uploading && <div className="small text-primary mt-1">Đang tải lên Cloudinary...</div>}
                                 </Form.Group>
                             </Col>
                         </Row>
                     </Modal.Body>
                     <Modal.Footer className="border-0">
-                        <Button variant="light" onClick={() => setShowProdModal(false)}>Cancel</Button>
-                        <Button variant="primary" type="submit">Save Product</Button>
+                        <Button variant="light" onClick={() => setShowProdModal(false)}>Hủy</Button>
+                        <Button variant="primary" type="submit">Lưu Sản phẩm</Button>
                     </Modal.Footer>
                 </Form>
             </Modal>

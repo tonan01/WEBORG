@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using TechShop.Application.Services;
+using TechShop.Application.Interfaces;
+using TechShop.Application.Mappings;
 using TechShop.Domain.Interfaces;
 using TechShop.Infrastructure.Data;
 using TechShop.Infrastructure.Repositories;
@@ -57,6 +59,7 @@ builder.Services.AddDbContext<TechShopDbContext>(options =>
 
 // Dependency Injection
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -88,7 +91,7 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// ✅ Đăng ký Middleware xử lý lỗi toàn cục ngay đầu pipeline
+// Đăng ký Middleware xử lý lỗi toàn cục ngay đầu pipeline
 app.UseMiddleware<TechShop.API.Middleware.ExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
@@ -119,17 +122,17 @@ using (var scope = app.Services.CreateScope())
         dbContext.SaveChanges();
 
         dbContext.Products.AddRange(
-            new TechShop.Domain.Entities.Product { Name = "MacBook Pro M3",    SKU = "MBP-M3-2024",  Price = 2000, Stock = 10, CategoryId = catLaptop.Id,    Description = "Apple Silicon M3, 16GB RAM, 512GB SSD",      ImageUrl = "https://cdn-icons-png.flaticon.com/512/2820/2820367.png" },
-            new TechShop.Domain.Entities.Product { Name = "Dell XPS 15",        SKU = "DELL-XPS15",   Price = 1500, Stock = 5,  CategoryId = catLaptop.Id,    Description = "Intel Core i9, 32GB RAM, OLED 4K",            ImageUrl = "https://cdn-icons-png.flaticon.com/512/2920/2920349.png" },
-            new TechShop.Domain.Entities.Product { Name = "iPhone 16 Pro",      SKU = "IP16-PRO-256", Price = 1200, Stock = 20, CategoryId = catPhone.Id,     Description = "A18 Pro chip, 256GB, Titanium",              ImageUrl = "https://cdn-icons-png.flaticon.com/512/2991/2991106.png" },
-            new TechShop.Domain.Entities.Product { Name = "Samsung Galaxy S25", SKU = "SAM-S25-128",  Price = 900,  Stock = 15, CategoryId = catPhone.Id,     Description = "Snapdragon 8 Elite, 128GB, 50MP Camera",     ImageUrl = "https://cdn-icons-png.flaticon.com/512/2991/2991106.png" },
-            new TechShop.Domain.Entities.Product { Name = "AirPods Pro 2",      SKU = "APP2-USB-C",   Price = 249,  Stock = 30, CategoryId = catAccessory.Id, Description = "ANC chủ động, USB-C, chip H2",             ImageUrl = "https://cdn-icons-png.flaticon.com/512/2972/2972531.png" },
-            new TechShop.Domain.Entities.Product { Name = "Keychron K8 Pro",    SKU = "KEY-K8P-RGB",  Price = 120,  Stock = 25, CategoryId = catAccessory.Id, Description = "Bàn phím cơ TKL, Gateron, RGB, Bluetooth", ImageUrl = "https://cdn-icons-png.flaticon.com/512/2972/2972531.png" }
+            new TechShop.Domain.Entities.Product { Name = "MacBook Pro M3",    SKU = "MBP-M3-2024",  Price = 50000000, Stock = 10, CategoryId = catLaptop.Id,    Description = "Apple Silicon M3, 16GB RAM, 512GB SSD",      ImageUrl = "https://cdn-icons-png.flaticon.com/512/2820/2820367.png" },
+            new TechShop.Domain.Entities.Product { Name = "Dell XPS 15",        SKU = "DELL-XPS15",   Price = 45000000, Stock = 5,  CategoryId = catLaptop.Id,    Description = "Intel Core i9, 32GB RAM, OLED 4K",            ImageUrl = "https://cdn-icons-png.flaticon.com/512/2920/2920349.png" },
+            new TechShop.Domain.Entities.Product { Name = "iPhone 16 Pro",      SKU = "IP16-PRO-256", Price = 32000000, Stock = 20, CategoryId = catPhone.Id,     Description = "A18 Pro chip, 256GB, Titanium",              ImageUrl = "https://cdn-icons-png.flaticon.com/512/2991/2991106.png" },
+            new TechShop.Domain.Entities.Product { Name = "Samsung Galaxy S25", SKU = "SAM-S25-128",  Price = 28000000, Stock = 15, CategoryId = catPhone.Id,     Description = "Snapdragon 8 Elite, 128GB, 50MP Camera",     ImageUrl = "https://cdn-icons-png.flaticon.com/512/2991/2991106.png" },
+            new TechShop.Domain.Entities.Product { Name = "AirPods Pro 2",      SKU = "APP2-USB-C",   Price = 6500000, Stock = 30, CategoryId = catAccessory.Id, Description = "ANC chủ động, USB-C, chip H2",             ImageUrl = "https://cdn-icons-png.flaticon.com/512/2972/2972531.png" },
+            new TechShop.Domain.Entities.Product { Name = "Keychron K8 Pro",    SKU = "KEY-K8P-RGB",  Price = 3200000, Stock = 25, CategoryId = catAccessory.Id, Description = "Bàn phím cơ TKL, Gateron, RGB, Bluetooth", ImageUrl = "https://cdn-icons-png.flaticon.com/512/2972/2972531.png" }
         );
         dbContext.SaveChanges();
     }
 
-    if (!dbContext.Users.Any(u => u.Role == "Admin"))
+    if (!dbContext.Users.Any(u => u.Username == "admin"))
     {
         var adminUser = new TechShop.Domain.Entities.User
         {
@@ -141,8 +144,37 @@ using (var scope = app.Services.CreateScope())
             Phone = "0123456789"
         };
         dbContext.Users.Add(adminUser);
-        dbContext.SaveChanges();
     }
+
+    if (!dbContext.Users.Any(u => u.Username == "baoa"))
+    {
+        var baoaAdmin = new TechShop.Domain.Entities.User
+        {
+            Username = "baoa",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("123"),
+            Role = "Admin",
+            Email = "baoa@techshop.com",
+            FullName = "Bao Admin",
+            Phone = "0987654321"
+        };
+        dbContext.Users.Add(baoaAdmin);
+    }
+
+    if (!dbContext.Users.Any(u => u.Username == "bao1"))
+    {
+        var bao1User = new TechShop.Domain.Entities.User
+        {
+            Username = "bao1",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("123"),
+            Role = "User",
+            Email = "bao1@techshop.com",
+            FullName = "Bao User",
+            Phone = "0123987654"
+        };
+        dbContext.Users.Add(bao1User);
+    }
+    
+    dbContext.SaveChanges();
 }
 
 app.MapControllers();

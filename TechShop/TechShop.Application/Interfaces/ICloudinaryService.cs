@@ -1,7 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace TechShop.Application.Services;
+namespace TechShop.Application.Interfaces;
 
 public interface ICloudinaryService
 {

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using TechShop.Application.DTOs;
 
-namespace TechShop.Application.Services;
+namespace TechShop.Application.Interfaces;
 
 public interface ICategoryService
 {

@@ -8,6 +8,7 @@ import CartPage from './pages/CartPage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 import AdminPage from './pages/AdminPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import ProfilePage from './pages/ProfilePage';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/history" element={<OrderHistoryPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>

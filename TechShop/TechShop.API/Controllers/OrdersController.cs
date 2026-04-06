@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TechShop.Application.DTOs;
-using TechShop.Application.Services;
+using TechShop.Application.Interfaces;
 
 namespace TechShop.API.Controllers;
 
@@ -36,18 +36,22 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("history")]
-    public async Task<IActionResult> GetOrderHistory()
+    public async Task<IActionResult> GetOrderHistory(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var orders = await _orderService.GetUserOrdersAsync(GetUserId());
+        var orders = await _orderService.GetUserOrdersAsync(GetUserId(), page, pageSize);
         return Ok(orders);
     }
 
-    // ✅ Hành động của Admin
+    // Hành động của Admin
     [HttpGet("all")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> GetAllOrders()
+    public async Task<IActionResult> GetAllOrders(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var orders = await _orderService.GetAllOrdersAsync();
+        var orders = await _orderService.GetAllOrdersAsync(page, pageSize);
         return Ok(orders);
     }
 

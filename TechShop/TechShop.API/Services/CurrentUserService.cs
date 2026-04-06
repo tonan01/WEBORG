@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using TechShop.Application.Services;
+using TechShop.Application.Interfaces;
 
 namespace TechShop.API.Services;
 

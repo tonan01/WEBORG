@@ -16,10 +16,10 @@ function LoginPage() {
         setLoading(true);
         try {
             await login(username, password);
-            toast.success('Signed in successfully!');
+            toast.success('Đăng nhập thành công!');
             navigate('/');
         } catch (err) {
-            toast.error(err.response?.data || 'Login failed. Please check your credentials.');
+            toast.error(err.response?.data || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
         } finally {
             setLoading(false);
         }
@@ -32,8 +32,8 @@ function LoginPage() {
                     <Card className="glass-card p-4">
                         <Card.Body>
                             <div className="text-center mb-4">
-                                <h1 className="display-6">Welcome Back</h1>
-                                <p className="text-muted">Sign in to continue to TechShop</p>
+                                <h1 className="display-6">Chào mừng trở lại</h1>
+                                <p className="text-muted">Đăng nhập để tiếp tục với TechShop</p>
                             </div>
 
                             <Form onSubmit={handleSubmit}>
@@ -41,7 +41,7 @@ function LoginPage() {
                                     <Form.Control 
                                         className="bg-transparent rounded-3 py-2"
                                         type="text" 
-                                        placeholder="Username"
+                                        placeholder="Tên đăng nhập"
                                         required 
                                         value={username} 
                                         onChange={(e) => setUsername(e.target.value)} 
@@ -51,18 +51,18 @@ function LoginPage() {
                                     <Form.Control 
                                         className="bg-transparent rounded-3 py-2"
                                         type="password" 
-                                        placeholder="Password"
+                                        placeholder="Mật khẩu"
                                         required 
                                         value={password} 
                                         onChange={(e) => setPassword(e.target.value)} 
                                     />
                                 </Form.Group>
                                 <Button className="w-100 py-2 mb-3" type="submit" disabled={loading}>
-                                    {loading ? 'Signing in...' : 'Sign In'}
+                                    {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                                 </Button>
                                 <div className="text-center">
-                                    <span className="text-muted small">Don't have an account? </span>
-                                    <Link to="/register" className="text-primary small text-decoration-none fw-bold">Register now</Link>
+                                    <span className="text-muted small">Chưa có tài khoản? </span>
+                                    <Link to="/register" className="text-primary small text-decoration-none fw-bold">Đăng ký ngay</Link>
                                 </div>
                             </Form>
                         </Card.Body>

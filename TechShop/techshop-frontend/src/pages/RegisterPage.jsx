@@ -24,10 +24,10 @@ function RegisterPage() {
         setLoading(true);
         try {
             await authService.register(formData);
-            toast.success('Registration successful! Please login.');
+            toast.success('Đăng ký thành công! Vui lòng đăng nhập.');
             navigate('/login');
         } catch (err) {
-            toast.error(err.response?.data || 'Registration failed. Username may exist.');
+            toast.error(err.response?.data || 'Đăng ký thất bại. Tên đăng nhập có thể đã tồn tại.');
         } finally {
             setLoading(false);
         }
@@ -40,19 +40,19 @@ function RegisterPage() {
                     <Card className="glass-card p-4">
                         <Card.Body>
                             <div className="text-center mb-4">
-                                <h1 className="display-6">Join TechShop</h1>
-                                <p className="text-muted">High-end gadgets specifically for you</p>
+                                <h1 className="display-6">Gia nhập TechShop</h1>
+                                <p className="text-muted">Thiết bị cao cấp dành riêng cho bạn</p>
                             </div>
                             
                             <Form onSubmit={handleRegister}>
                                 <Row>
                                     <Col md={12}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>User Information</Form.Label>
+                                            <Form.Label>Thông tin người dùng</Form.Label>
                                             <Form.Control 
                                                 className="bg-transparent rounded-3"
                                                 name="fullName" 
-                                                placeholder="Your Full Name"
+                                                placeholder="Họ và tên của bạn"
                                                 onChange={handleChange} 
                                                 required 
                                             />
@@ -63,7 +63,7 @@ function RegisterPage() {
                                             <Form.Control 
                                                 className="bg-transparent rounded-3"
                                                 name="username" 
-                                                placeholder="Username"
+                                                placeholder="Tên đăng nhập"
                                                 onChange={handleChange} 
                                                 required 
                                             />
@@ -75,7 +75,7 @@ function RegisterPage() {
                                                 className="bg-transparent rounded-3"
                                                 type="password" 
                                                 name="password" 
-                                                placeholder="Password"
+                                                placeholder="Mật khẩu"
                                                 onChange={handleChange} 
                                                 required 
                                             />
@@ -87,7 +87,7 @@ function RegisterPage() {
                                                 className="bg-transparent rounded-3"
                                                 type="email" 
                                                 name="email" 
-                                                placeholder="Email Address"
+                                                placeholder="Địa chỉ Email"
                                                 onChange={handleChange} 
                                                 required 
                                             />
@@ -98,7 +98,7 @@ function RegisterPage() {
                                             <Form.Control 
                                                 className="bg-transparent rounded-3"
                                                 name="phone" 
-                                                placeholder="Phone Number"
+                                                placeholder="Số điện thoại"
                                                 onChange={handleChange} 
                                                 required 
                                             />
@@ -107,12 +107,12 @@ function RegisterPage() {
                                 </Row>
                                 
                                 <Button className="w-100 py-2 mb-3" type="submit" disabled={loading}>
-                                    {loading ? 'Creating Account...' : 'Register Now'}
+                                    {loading ? 'Đang tạo tài khoản...' : 'Đăng ký ngay'}
                                 </Button>
                                 
                                 <div className="text-center">
-                                    <span className="text-muted small">Already have an account? </span>
-                                    <Link to="/login" className="text-primary small text-decoration-none fw-bold">Login here</Link>
+                                    <span className="text-muted small">Đã có tài khoản? </span>
+                                    <Link to="/login" className="text-primary small text-decoration-none fw-bold">Đăng nhập tại đây</Link>
                                 </div>
                             </Form>
                         </Card.Body>

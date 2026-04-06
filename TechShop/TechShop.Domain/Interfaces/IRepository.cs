@@ -12,11 +12,11 @@ public interface IRepository<T> where T : class
     Task<T?> GetByIdWithIncludesAsync(int id, params Expression<Func<T, object>>[] includes);
     Task<T?> GetByIdIgnoreFiltersAsync(int id);
 
-    /// <summary>Query DB trực tiếp — không load cả bảng vào memory</summary>
-    Task<T?> FindAsync(Expression<Func<T, bool>> predicate);
+    /// <summary>Lấy IQueryable để phân trang/lọc tại Database level</summary>
+    IQueryable<T> GetQueryable(params Expression<Func<T, object>>[] includes);
 
-    /// <summary>Query nhiều row theo predicate — không load cả bảng vào memory</summary>
-    Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> predicate);
+    /// <summary>Lấy IQueryable bypass Soft Delete filters</summary>
+    IQueryable<T> GetQueryableIgnoreFilters(params Expression<Func<T, object>>[] includes);
 
     /// <summary>Bypass Global Query Filter (soft delete) — chỉ dùng cho Admin</summary>
     Task<IEnumerable<T>> GetAllIgnoreFiltersAsync(params Expression<Func<T, object>>[] includes);

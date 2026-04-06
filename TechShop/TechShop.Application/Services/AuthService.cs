@@ -3,35 +3,32 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using TechShop.Application.DTOs;
+using TechShop.Application.Interfaces;
 using TechShop.Domain.Entities;
 using TechShop.Domain.Interfaces;
 using System.Linq;
 
 namespace TechShop.Application.Services;
 
-public interface IAuthService
-{
-    Task<AuthResponseDto?> LoginAsync(LoginDto loginDto);
-    Task<bool> RegisterAsync(RegisterDto registerDto);
-}
-
 public class AuthService : IAuthService
 {
     private readonly IRepository<User> _userRepository;
     private readonly IConfiguration _config;
+    private readonly IMapper _mapper;
 
-    public AuthService(IRepository<User> userRepository, IConfiguration config)
+    public AuthService(IRepository<User> userRepository, IConfiguration config, IMapper mapper)
     {
         _userRepository = userRepository;
         _config = config;
+        _mapper = mapper;
     }
 
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto)
     {
-        // ✅ FindAsync — query thẳng DB, không load cả bảng vào memory
         var user = await _userRepository.FindAsync(u => u.Username == loginDto.Username);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
@@ -39,40 +36,59 @@ public class AuthService : IAuthService
             return null;
         }
 
-        // ✅ Không cần UpdateAsync khi login — không có gì thay đổi
         var token = GenerateJwtToken(user);
-        return new AuthResponseDto
-        {
-            Token = token,
-            Username = user.Username,
-            Role = user.Role,
-            FullName = user.FullName,
-            Email = user.Email
-        };
+        var response = _mapper.Map<AuthResponseDto>(user);
+        response.Token = token;
+        
+        return response;
     }
 
     public async Task<bool> RegisterAsync(RegisterDto registerDto)
     {
-        // ✅ FindAsync — query thẳng DB theo username, không load cả bảng
         var existing = await _userRepository.FindAsync(u => u.Username == registerDto.Username);
         if (existing != null)
         {
-            return false; // Username exists
+            return false;
         }
 
-        var user = new User
-        {
-            Username = registerDto.Username,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
-            // ✅ Luôn gán Role = "User" khi register — Admin được thêm thủ công trong DB
-            Role = "User",
-            Email = registerDto.Email,
-            FullName = registerDto.FullName,
-            Phone = registerDto.Phone
-        };
+        var user = _mapper.Map<User>(registerDto);
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
+        user.Role = "User"; // Default role
 
         await _userRepository.AddAsync(user);
         return true;
+    }
+
+    public async Task<AuthResponseDto?> GetProfileAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) return null;
+        return _mapper.Map<AuthResponseDto>(user);
+    }
+
+    public async Task<bool> UpdateProfileAsync(int userId, UpdateProfileDto updateProfileDto)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) return false;
+
+        _mapper.Map(updateProfileDto, user);
+        await _userRepository.UpdateAsync(user);
+        return true;
+    }
+
+    public async Task<string> ChangePasswordAsync(int userId, ChangePasswordDto dto)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) return "Người dùng không tồn tại";
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.OldPassword, user.PasswordHash))
+        {
+            return "Mật khẩu cũ không chính xác";
+        }
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        await _userRepository.UpdateAsync(user);
+        return "SUCCESS";
     }
 
     private string GenerateJwtToken(User user)

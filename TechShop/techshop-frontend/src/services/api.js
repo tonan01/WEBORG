@@ -15,19 +15,17 @@ api.interceptors.request.use((config) => {
 export const authService = {
     login: (username, password) => api.post('/auth/login', { username, password }),
     register: (data) => api.post('/auth/register', data), // data: { username, password, email, fullName, phone }
+    getProfile: () => api.get('/auth/profile'),
+    updateProfile: (data) => api.put('/auth/profile', data),
+    changePassword: (data) => api.post('/auth/change-password', data),
 };
 
 export const productService = {
-    getAll: (keyword = '', categoryId = '') => {
-        let url = '/products';
-        const params = [];
-        if (keyword) params.push(`keyword=${keyword}`);
-        if (categoryId) params.push(`categoryId=${categoryId}`);
-        if (params.length > 0) url += `?${params.join('&')}`;
-        return api.get(url);
-    },
+    getAll: (keyword = '', categoryId = null, page = 1, pageSize = 12) => 
+        api.get('/products', { params: { keyword, categoryId, page, pageSize } }),
     getById: (id) => api.get(`/products/${id}`),
-    getAllWithDeleted: () => api.get('/products/all-with-deleted'),
+    getAllWithDeleted: (page = 1, pageSize = 10) => 
+        api.get('/products/all-with-deleted', { params: { page, pageSize } }),
     create: (data) => api.post('/products', data),
     update: (id, data) => api.put(`/products/${id}`, data),
     remove: (id) => api.delete(`/products/${id}`),
@@ -52,9 +50,11 @@ export const cartService = {
 
 export const orderService = {
     checkout: (data) => api.post('/orders/checkout', data), // data: { shippingAddress, paymentMethod, note }
-    getHistory: () => api.get('/orders/history'),
-    // ✅ Quyền Admin
-    getAll: () => api.get('/orders/all'),
+    getHistory: (page = 1, pageSize = 10) => 
+        api.get('/orders/history', { params: { page, pageSize } }),
+    // Quyền Admin
+    getAll: (page = 1, pageSize = 10) => 
+        api.get('/orders/all', { params: { page, pageSize } }),
     updateStatus: (id, status) => api.put(`/orders/${id}/status`, JSON.stringify(status), { headers: { 'Content-Type': 'application/json' } }),
     getAdminStats: () => api.get('/orders/admin/stats')
 };

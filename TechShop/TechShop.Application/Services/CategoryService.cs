@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using TechShop.Application.DTOs;
+using TechShop.Application.Interfaces;
 using TechShop.Domain.Entities;
 using TechShop.Domain.Interfaces;
 
@@ -10,39 +12,35 @@ namespace TechShop.Application.Services;
 public class CategoryService : ICategoryService
 {
     private readonly IRepository<Category> _categoryRepo;
+    private readonly IMapper _mapper;
 
-    public CategoryService(IRepository<Category> categoryRepo)
+    public CategoryService(IRepository<Category> categoryRepo, IMapper mapper)
     {
         _categoryRepo = categoryRepo;
+        _mapper = mapper;
     }
 
     public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
     {
-        // ✅ Cây quan hệ: Category kèm ParentCategory (Include)
+        // Cây quan hệ: Category kèm ParentCategory (Include)
         var categories = await _categoryRepo.GetAllWithIncludesAsync(c => c.ParentCategory!);
-        return categories.Select(MapToDto);
+        return _mapper.Map<IEnumerable<CategoryDto>>(categories);
     }
 
     public async Task<CategoryDto?> GetCategoryByIdAsync(int id)
     {
         var category = await _categoryRepo.GetByIdWithIncludesAsync(id, c => c.ParentCategory!);
-        return category == null ? null : MapToDto(category);
+        return _mapper.Map<CategoryDto?>(category);
     }
 
     public async Task<CategoryDto> CreateCategoryAsync(CategoryCreateDto dto)
     {
-        var category = new Category
-        {
-            Name = dto.Name,
-            Description = dto.Description,
-            ImageUrl = dto.ImageUrl,
-            ParentCategoryId = dto.ParentCategoryId
-        };
+        var category = _mapper.Map<Category>(dto);
         await _categoryRepo.AddAsync(category);
 
         // Load lại để có tên ParentCategory
         var created = await _categoryRepo.GetByIdWithIncludesAsync(category.Id, c => c.ParentCategory!);
-        return MapToDto(created ?? category);
+        return _mapper.Map<CategoryDto>(created ?? category);
     }
 
     public async Task<bool> UpdateCategoryAsync(int id, CategoryUpdateDto dto)
@@ -50,10 +48,7 @@ public class CategoryService : ICategoryService
         var category = await _categoryRepo.GetByIdAsync(id);
         if (category == null) return false;
 
-        category.Name = dto.Name;
-        category.Description = dto.Description;
-        category.ImageUrl = dto.ImageUrl;
-        category.ParentCategoryId = dto.ParentCategoryId;
+        _mapper.Map(dto, category);
 
         await _categoryRepo.UpdateAsync(category);
         return true;
@@ -72,30 +67,23 @@ public class CategoryService : ICategoryService
     public async Task<List<int>> GetCategoryIdsRecursiveAsync(int parentId)
     {
         var result = new List<int> { parentId };
-        var allCategories = await _categoryRepo.GetAllAsync(); // Lấy tất cả để xử lý đệ quy trong memory
-        GetChildIds(parentId, allCategories.ToList(), result);
+        
+        // Chỉ lấy Id và ParentId để tối ưu bộ nhớ khi xử lý đệ quy
+        var allCategoryRefs = await _categoryRepo.GetQueryable()
+            .Select(c => new { c.Id, c.ParentCategoryId })
+            .ToListAsync();
+            
+        GetChildIds(parentId, allCategoryRefs, result);
         return result;
     }
 
-    private void GetChildIds(int parentId, List<Category> allCategories, List<int> result)
+    private void GetChildIds(int parentId, IEnumerable<dynamic> allCategories, List<int> result)
     {
-        var children = allCategories.Where(c => c.ParentCategoryId == parentId).Select(c => c.Id).ToList();
+        var children = allCategories.Where(c => c.ParentCategoryId == parentId).Select(c => (int)c.Id).ToList();
         foreach (var childId in children)
         {
             result.Add(childId);
             GetChildIds(childId, allCategories, result);
         }
     }
-
-    private static CategoryDto MapToDto(Category c) => new()
-    {
-        Id = c.Id,
-        Name = c.Name,
-        Description = c.Description,
-        ImageUrl = c.ImageUrl,
-        ParentCategoryId = c.ParentCategoryId,
-        // ✅ Hiển thị tên danh mục cha
-        ParentCategoryName = c.ParentCategory?.Name,
-        IsDeleted = c.IsDeleted
-    };
 }

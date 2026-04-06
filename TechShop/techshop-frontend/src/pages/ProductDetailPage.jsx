@@ -36,9 +36,9 @@ function ProductDetailPage() {
         setAdding(true);
         try {
             await cartService.add(product.id, 1);
-            toast.success('Added to cart!');
+            toast.success('Đã thêm vào giỏ hàng!');
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Error adding to cart');
+            toast.error(err.response?.data?.message || 'Lỗi khi thêm vào giỏ hàng');
         } finally {
             setAdding(false);
         }
@@ -55,8 +55,8 @@ function ProductDetailPage() {
     if (!product) {
         return (
             <Container className="py-5 text-center">
-                <h3>Product not found</h3>
-                <Button variant="primary" onClick={() => navigate('/')}>Back to Home</Button>
+                <h3>Không tìm thấy sản phẩm</h3>
+                <Button variant="primary" onClick={() => navigate('/')}>Quay lại trang chủ</Button>
             </Container>
         );
     }
@@ -82,36 +82,41 @@ function ProductDetailPage() {
                         </Badge>
                         <h1 className="display-5 mb-3">{product.name}</h1>
                         <div className="d-flex align-items-center mb-4">
-                            <h2 className="text-primary me-3 mb-0">${product.price}</h2>
+                            <h2 className="text-primary me-3 mb-0">
+                                {new Intl.NumberFormat('vi-VN').format(product.price)} VNĐ
+                            </h2>
                             <Badge bg={product.stock > 0 ? 'success' : 'danger'} className="rounded-pill px-3">
-                                {product.stock > 0 ? `${product.stock} in stock` : 'Out of Stock'}
+                                {product.stock > 0 ? `${product.stock} trong kho` : 'Hết hàng'}
                             </Badge>
                         </div>
                         
                         <div className="glass-card p-4 mb-4">
-                            <h5 className="mb-3">Description</h5>
+                            <h5 className="mb-3">Mô tả</h5>
                             <p className="text-muted leading-relaxed">
-                                {product.description || "Experience perfection with our latest gadget. Engineered for performance and designed for style, this product sets a new standard in the industry."}
+                                {product.description || "Trải nghiệm sự hoàn hảo với thiết bị mới nhất của chúng tôi. Được thiết kế tối ưu cho hiệu năng và phong cách, sản phẩm này đặt ra một tiêu chuẩn mới trong ngành."}
                             </p>
                         </div>
 
                         <div className="mb-5">
-                            <h6 className="text-muted small mb-3">Product SKU: {product.sku}</h6>
+                            <h6 className="text-muted small mb-3">Mã sản phẩm (SKU): {product.sku}</h6>
                             <Row className="g-3">
                                 <Col sm={6}>
                                     <Button 
                                         variant="primary" 
-                                        size="lg" 
                                         className="w-100 py-3 shadow" 
                                         disabled={product.stock <= 0 || adding}
                                         onClick={handleAddToCart}
                                     >
-                                        {adding ? 'Adding...' : 'Add to Cart'}
+                                        {adding ? 'Đang thêm...' : '🛒 Thêm vào giỏ'}
                                     </Button>
                                 </Col>
                                 <Col sm={6}>
-                                    <Button variant="outline-dark" size="lg" className="w-100 py-3" onClick={() => navigate('/')}>
-                                        Continue Shopping
+                                    <Button 
+                                        variant="outline-dark" 
+                                        className="w-100 py-3" 
+                                        onClick={() => navigate('/')}
+                                    >
+                                        🛍️ Tiếp tục mua sắm
                                     </Button>
                                 </Col>
                             </Row>
@@ -123,8 +128,8 @@ function ProductDetailPage() {
                                     <i className="bi bi-shield-check"></i> 🛡️
                                 </div>
                                 <div>
-                                    <h6 className="mb-1">Genuine Warranty</h6>
-                                    <small className="text-muted">12 months official warranty from TechShop</small>
+                                    <h6 className="mb-1">Bảo hành chính hãng</h6>
+                                    <small className="text-muted">Bảo hành 12 tháng từ TechShop</small>
                                 </div>
                             </Card.Body>
                         </Card>

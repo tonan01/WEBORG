@@ -2,21 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using TechShop.Application.DTOs;
+using TechShop.Application.Interfaces;
 using TechShop.Domain.Entities;
 using TechShop.Domain.Interfaces;
 
 namespace TechShop.Application.Services;
-
-public interface IOrderService
-{
-    Task<OrderDto?> CreateOrderFromCartAsync(int userId, CheckoutDto checkoutDto);
-    Task<IEnumerable<OrderDto>> GetUserOrdersAsync(int userId);
-    // ✅ Quyền Admin
-    Task<IEnumerable<OrderDto>> GetAllOrdersAsync();
-    Task<bool> UpdateOrderStatusAsync(int orderId, string status);
-    Task<AdminStatsDto> GetDashboardStatsAsync();
-}
 
 public class OrderService : IOrderService
 {
@@ -26,13 +18,15 @@ public class OrderService : IOrderService
     private readonly IRepository<CartItem> _cartItemRepo;
     private readonly IRepository<Product> _productRepo;
     private readonly IRepository<Category> _categoryRepo;
+    private readonly IMapper _mapper;
 
     public OrderService(IRepository<Order> orderRepo,
                         IRepository<OrderDetail> orderDetailRepo,
                         ICartService cartService,
                         IRepository<CartItem> cartItemRepo,
                         IRepository<Product> productRepo,
-                        IRepository<Category> categoryRepo)
+                        IRepository<Category> categoryRepo,
+                        IMapper mapper)
     {
         _orderRepo = orderRepo;
         _orderDetailRepo = orderDetailRepo;
@@ -40,6 +34,7 @@ public class OrderService : IOrderService
         _cartItemRepo = cartItemRepo;
         _productRepo = productRepo;
         _categoryRepo = categoryRepo;
+        _mapper = mapper;
     }
 
     public async Task<OrderDto?> CreateOrderFromCartAsync(int userId, CheckoutDto checkoutDto)
@@ -62,12 +57,12 @@ public class OrderService : IOrderService
                 Note = checkoutDto.Note,
             };
 
-            // ✅ Lưu Order trước để có Id (saveChanges: true để lấy Identity Id)
+            // Lưu Order trước để có Id (saveChanges: true để lấy Identity Id)
             await _orderRepo.AddAsync(order);
 
             foreach (var item in cartDto.Items)
             {
-                // ✅ Re-fetch product bên trong transaction để đảm bảo stock chính xác nhất (Tránh Race Condition)
+                // Re-fetch product bên trong transaction để đảm bảo stock chính xác nhất (Tránh Race Condition)
                 var product = await _productRepo.GetByIdAsync(item.ProductId);
                 if (product == null || product.Stock < item.Quantity)
                 {
@@ -85,18 +80,18 @@ public class OrderService : IOrderService
                     DiscountAmount = 0
                 };
 
-                // ✅ AddWithoutSave (saveChanges: false)
+                // AddWithoutSave (saveChanges: false)
                 await _orderDetailRepo.AddAsync(detail, saveChanges: false);
 
-                // ✅ Update Stock (saveChanges: false)
+                // Update Stock (saveChanges: false)
                 product.Stock -= item.Quantity;
                 await _productRepo.UpdateAsync(product, saveChanges: false);
 
-                // ✅ Delete CartItem (saveChanges: false)
+                // Delete CartItem (saveChanges: false)
                 await _cartItemRepo.DeleteAsync(item.Id, saveChanges: false);
             }
 
-            // ✅ Commit tất cả thay đổi trong 1 lần SaveChanges duy nhất
+            // Commit tất cả thay đổi trong 1 lần SaveChanges duy nhất
             await _orderRepo.SaveChangesAsync();
             await _orderRepo.CommitTransactionAsync();
 
@@ -109,26 +104,35 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<IEnumerable<OrderDto>> GetUserOrdersAsync(int userId)
+    public async Task<PagedResult<OrderDto>> GetUserOrdersAsync(int userId, int pageNumber = 1, int pageSize = 10)
     {
-        // ✅ Cây: Orders → OrderDetails (Include — không cần query thêm)
-        var allOrders = await _orderRepo.GetAllWithIncludesAsync(o => o.OrderDetails);
-        var userOrders = allOrders
-            .Where(o => o.UserId == userId)
+        var query = _orderRepo.GetQueryable(o => o.OrderDetails)
+            .Where(o => o.UserId == userId);
+        
+        var totalCount = await query.CountAsync();
+        var items = await query
             .OrderByDescending(o => o.OrderDate)
-            .ToList();
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
-        return userOrders.Select(MapOrderToDto).ToList();
+        var dtos = _mapper.Map<IEnumerable<OrderDto>>(items);
+        return new PagedResult<OrderDto>(dtos, totalCount, pageNumber, pageSize);
     }
 
-    public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
+    public async Task<PagedResult<OrderDto>> GetAllOrdersAsync(int pageNumber = 1, int pageSize = 10)
     {
-        // ✅ Admin sees everything
-        var orders = await _orderRepo.GetAllWithIncludesAsync(o => o.OrderDetails);
-        return orders
+        var query = _orderRepo.GetQueryable(o => o.OrderDetails);
+        
+        var totalCount = await query.CountAsync();
+        var items = await query
             .OrderByDescending(o => o.OrderDate)
-            .Select(MapOrderToDto)
-            .ToList();
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var dtos = _mapper.Map<IEnumerable<OrderDto>>(items);
+        return new PagedResult<OrderDto>(dtos, totalCount, pageNumber, pageSize);
     }
 
     public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)
@@ -138,7 +142,7 @@ public class OrderService : IOrderService
 
         order.Status = status;
 
-        // ✅ Tự động cập nhật mốc thời gian
+        // Tự động cập nhật mốc thời gian
         if (status.Equals("Shipped", StringComparison.OrdinalIgnoreCase))
             order.ShippedDate = DateTime.UtcNow;
         else if (status.Equals("Delivered", StringComparison.OrdinalIgnoreCase))
@@ -150,31 +154,42 @@ public class OrderService : IOrderService
 
     public async Task<AdminStatsDto> GetDashboardStatsAsync()
     {
-        var orders = await _orderRepo.GetAllAsync();
-        var products = await _productRepo.GetAllAsync();
-        var categories = await _categoryRepo.GetAllAsync();
+        var orderQuery = _orderRepo.GetQueryable();
+        var productCount = await _productRepo.GetQueryable().CountAsync();
+        var categoryCount = await _categoryRepo.GetQueryable().CountAsync();
+
+        var deliveredOrders = orderQuery.Where(o => o.Status == "Delivered");
 
         var stats = new AdminStatsDto
         {
-            TotalRevenue = orders.Sum(o => o.TotalAmount),
-            TotalOrders = orders.Count(),
-            TotalProducts = products.Count(),
-            TotalCategories = categories.Count()
+            TotalRevenue = await deliveredOrders.SumAsync(o => o.TotalAmount),
+            TotalOrders = await orderQuery.CountAsync(),
+            TotalProducts = productCount,
+            TotalCategories = categoryCount
         };
 
         // Thống kê doanh thu theo tháng (12 tháng gần nhất)
         var months = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
         var now = DateTime.UtcNow;
         
+        // Load các đơn hàng đã giao trong 12 tháng qua một lần duy nhất để tối ưu
+        var startDate = new DateTime(now.Year, now.Month, 1).AddMonths(-11);
+        var recentOrders = await deliveredOrders
+            .Where(o => o.OrderDate >= startDate)
+            .Select(o => new { o.OrderDate, o.TotalAmount })
+            .ToListAsync();
+
         for (int i = 0; i < 12; i++)
         {
-            var date = now.AddMonths(-(11 - i));
-            var monthOrders = orders.Where(o => o.OrderDate.Month == date.Month && o.OrderDate.Year == date.Year);
+            var date = startDate.AddMonths(i);
+            var revenue = recentOrders
+                .Where(o => o.OrderDate.Month == date.Month && o.OrderDate.Year == date.Year)
+                .Sum(o => o.TotalAmount);
             
             stats.MonthlyRevenue.Add(new MonthlyRevenueDto
             {
                 Month = months[date.Month - 1] + " " + (date.Year % 100),
-                Revenue = monthOrders.Sum(o => o.TotalAmount)
+                Revenue = revenue
             });
         }
 
@@ -183,32 +198,8 @@ public class OrderService : IOrderService
 
     private async Task<OrderDto> GetOrderByIdAsync(int orderId)
     {
-        // ✅ Cây: Order → OrderDetails
+        // Cây: Order → OrderDetails
         var order = await _orderRepo.GetByIdWithIncludesAsync(orderId, o => o.OrderDetails);
-        if (order == null) return null!;
-        return MapOrderToDto(order);
+        return _mapper.Map<OrderDto>(order!);
     }
-
-    private static OrderDto MapOrderToDto(Order order) => new()
-    {
-        Id = order.Id,
-        UserId = order.UserId,
-        OrderDate = order.OrderDate,
-        TotalAmount = order.TotalAmount,
-        Status = order.Status,
-        ShippingAddress = order.ShippingAddress,
-        PaymentMethod = order.PaymentMethod,
-        Note = order.Note,
-        ShippedDate = order.ShippedDate,
-        DeliveredDate = order.DeliveredDate,
-        // ✅ OrderDetails available via navigation property — no extra query needed
-        Details = order.OrderDetails.Select(d => new OrderDetailDto
-        {
-            ProductId = d.ProductId,
-            ProductName = d.ProductName,
-            Quantity = d.Quantity,
-            UnitPrice = d.UnitPrice,
-            DiscountAmount = d.DiscountAmount
-        }).ToList()
-    };
 }

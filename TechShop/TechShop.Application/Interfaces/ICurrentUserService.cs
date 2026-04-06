@@ -1,4 +1,4 @@
-namespace TechShop.Application.Services;
+namespace TechShop.Application.Interfaces;
 
 public interface ICurrentUserService
 {
