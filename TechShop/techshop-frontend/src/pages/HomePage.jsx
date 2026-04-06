@@ -158,8 +158,17 @@ function HomePage() {
                                     <Card className="glass-card h-100 border-0 overflow-hidden shadow-hover">
                                         <div 
                                             onClick={() => navigate(`/product/${p.id}`)}
-                                            style={{ height: '180px', background: 'var(--secondary-gradient)', opacity: 0.1, cursor: 'pointer' }}
-                                        ></div>
+                                            className="overflow-hidden d-flex align-items-center justify-content-center bg-light"
+                                            style={{ height: '220px', cursor: 'pointer' }}
+                                        >
+                                            <img 
+                                                src={p.imageUrl || 'https://placehold.co/600x400?text=No+Image'} 
+                                                alt={p.name}
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
+                                                className="product-card-img"
+                                                onError={(e) => { e.target.src = 'https://placehold.co/600x400?text=No+Image'; }}
+                                            />
+                                        </div>
                                         <Card.Body className="pt-3">
                                             <div className="d-flex justify-content-between align-items-start mb-2">
                                                 <Card.Title 

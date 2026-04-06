@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Tabs, Tab, Table, Button, Modal, Form, Badge, Card, Row, Col } from 'react-bootstrap';
-import { productService, categoryService, orderService } from '../services/api';
+import { productService, categoryService, orderService, uploadService } from '../services/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { toast } from 'react-hot-toast';
 
@@ -12,6 +12,7 @@ function AdminPage() {
     const [orders, setOrders] = useState([]);
     const [stats, setStats] = useState(null);
     const [activeTab, setActiveTab] = useState('dashboard');
+    const [uploading, setUploading] = useState(false);
 
     // Modal States
     const [showProdModal, setShowProdModal] = useState(false);
@@ -53,6 +54,23 @@ function AdminPage() {
     }, []);
 
     // --- Product Handlers ---
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const res = await uploadService.uploadImage(file);
+            setProductForm({ ...productForm, imageUrl: res.data.url });
+            toast.success('Image uploaded to Cloudinary!');
+        } catch (err) {
+            toast.error('Image upload failed');
+            console.error(err);
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleProductSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -256,7 +274,7 @@ function AdminPage() {
                                                     setCategoryForm({ ...c, parentCategoryId: c.parentCategoryId || '' });
                                                     setShowCatModal(true);
                                                 }}>Edit</Button>
-                                                <Button size="sm" variant="outline-danger" onClick={() => deleteCategory(c.id)}>Del</Button>
+                                                <Button size="sm" variant="outline-danger" onClick={() => deleteCategory(c.id)}>Delete</Button>
                                             </td>
                                         </tr>
                                     ))}
@@ -477,7 +495,39 @@ function AdminPage() {
                             <Col md={6}><Form.Group className="mb-3"><Form.Control type="number" placeholder="Price" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} required /></Form.Group></Col>
                             <Col md={6}><Form.Group className="mb-3"><Form.Control type="number" placeholder="Stock" value={productForm.stock} onChange={e => setProductForm({...productForm, stock: e.target.value})} required /></Form.Group></Col>
                             <Col md={12}><Form.Group className="mb-3"><Form.Control as="textarea" placeholder="Description" value={productForm.description} onChange={e => setProductForm({...productForm, description: e.target.value})} /></Form.Group></Col>
-                            <Col md={12}><Form.Group className="mb-3"><Form.Control placeholder="Image URL" value={productForm.imageUrl} onChange={e => setProductForm({...productForm, imageUrl: e.target.value})} /></Form.Group></Col>
+                            <Col md={12}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small fw-bold">Product Image</Form.Label>
+                                    <div className="d-flex gap-2 align-items-start">
+                                        <div className="flex-grow-1">
+                                            <Form.Control 
+                                                placeholder="Image URL" 
+                                                value={productForm.imageUrl} 
+                                                onChange={e => setProductForm({...productForm, imageUrl: e.target.value})} 
+                                            />
+                                            <Form.Text className="text-muted">Or upload a new file below</Form.Text>
+                                        </div>
+                                        {productForm.imageUrl && (
+                                            <img 
+                                                src={productForm.imageUrl} 
+                                                alt="Preview" 
+                                                style={{ width: '60px', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
+                                                className="border"
+                                                onError={(e) => { e.target.src = 'https://placehold.co/100?text=Error'; }}
+                                            />
+                                        )}
+                                    </div>
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Control 
+                                        type="file" 
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        disabled={uploading}
+                                    />
+                                    {uploading && <div className="small text-primary mt-1">Uploading to Cloudinary...</div>}
+                                </Form.Group>
+                            </Col>
                         </Row>
                     </Modal.Body>
                     <Modal.Footer className="border-0">

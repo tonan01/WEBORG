@@ -65,11 +65,14 @@ function ProductDetailPage() {
         <Container className="py-5 animate-fade">
             <Row className="gx-5">
                 <Col lg={6} className="mb-4">
-                    <div className="glass-card p-2 h-100 overflow-hidden d-flex align-items-center justify-content-center" style={{ minHeight: '400px' }}>
-                        <div style={{ width: '100%', height: '100%', background: 'var(--secondary-gradient)', opacity: 0.1, borderRadius: '12px' }}></div>
-                        <div className="position-absolute text-center">
-                            <h1 className="display-1 text-primary opacity-25">PREMIUM</h1>
-                        </div>
+                    <div className="glass-card p-2 h-100 overflow-hidden d-flex align-items-center justify-content-center bg-white" style={{ minHeight: '400px' }}>
+                        <img 
+                            src={product.imageUrl || 'https://placehold.co/600x400?text=No+Image'} 
+                            alt={product.name}
+                            className="img-fluid rounded"
+                            style={{ maxHeight: '450px', width: 'auto', objectFit: 'contain' }}
+                            onError={(e) => { e.target.src = 'https://placehold.co/600x400?text=No+Image'; }}
+                        />
                     </div>
                 </Col>
                 <Col lg={6}>

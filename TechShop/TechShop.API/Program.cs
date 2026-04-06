@@ -7,6 +7,7 @@ using TechShop.Application.Services;
 using TechShop.Domain.Interfaces;
 using TechShop.Infrastructure.Data;
 using TechShop.Infrastructure.Repositories;
+using TechShop.Infrastructure.Services;
 using TechShop.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -63,6 +64,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
 // JWT Authentication
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "super_secret_key_needs_to_be_long_enough_1234567890!");
