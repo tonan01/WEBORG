@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using TechShop.Application.DTOs;
 using TechShop.Application.Interfaces;
+using TechShop.Application.Common.Models;
 
 namespace TechShop.API.Controllers;
 
@@ -27,11 +28,11 @@ public class OrdersController : ControllerBase
         try
         {
             var order = await _orderService.CreateOrderFromCartAsync(GetUserId(), dto);
-            return Ok(order);
+            return Ok(ApiResponse<OrderDto>.SuccessResult(order, "Đặt hàng thành công"));
         }
         catch (System.InvalidOperationException ex)
         {
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(ApiResponse<object>.FailureResult(ex.Message));
         }
     }
 
@@ -41,7 +42,7 @@ public class OrdersController : ControllerBase
         [FromQuery] int pageSize = 10)
     {
         var orders = await _orderService.GetUserOrdersAsync(GetUserId(), page, pageSize);
-        return Ok(orders);
+        return Ok(ApiResponse<PagedResult<OrderDto>>.SuccessResult(orders));
     }
 
     // Hành động của Admin
@@ -53,7 +54,7 @@ public class OrdersController : ControllerBase
         [FromQuery] int pageSize = 10)
     {
         var orders = await _orderService.GetAllOrdersAsync(status, page, pageSize);
-        return Ok(orders);
+        return Ok(ApiResponse<PagedResult<OrderDto>>.SuccessResult(orders));
     }
 
     [HttpGet("admin/stats")]
@@ -61,7 +62,7 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> GetAdminStats()
     {
         var stats = await _orderService.GetDashboardStatsAsync();
-        return Ok(stats);
+        return Ok(ApiResponse<AdminStatsDto>.SuccessResult(stats));
     }
 
     [HttpPut("{id}/status")]
@@ -69,7 +70,7 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] string status)
     {
         var result = await _orderService.UpdateOrderStatusAsync(id, status);
-        if (!result) return NotFound();
-        return Ok(new { Message = "Cập nhật trạng thái thành công" });
+        if (!result) return NotFound(ApiResponse<object>.FailureResult("Không tìm thấy đơn hàng."));
+        return Ok(ApiResponse<object>.SuccessResult(null, "Cập nhật trạng thái thành công"));
     }
 }

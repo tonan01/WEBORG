@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Badge, Card, Spinner } from 'react-bootstrap';
 import { productService, cartService } from '../services/api';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
+import { formatCurrency } from '../utils/formatters';
 
 function ProductDetailPage() {
     const { id } = useParams();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [adding, setAdding] = useState(false);
-    const { user } = useContext(AuthContext);
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -83,7 +84,7 @@ function ProductDetailPage() {
                         <h1 className="display-5 mb-3">{product.name}</h1>
                         <div className="d-flex align-items-center mb-4">
                             <h2 className="text-primary me-3 mb-0">
-                                {new Intl.NumberFormat('vi-VN').format(product.price)} VNĐ
+                                {formatCurrency(product.price)}
                             </h2>
                             <Badge bg={product.stock > 0 ? 'success' : 'danger'} className="rounded-pill px-3">
                                 {product.stock > 0 ? `${product.stock} trong kho` : 'Hết hàng'}

@@ -36,9 +36,16 @@ public class ExceptionMiddleware
                 _ => (int)HttpStatusCode.InternalServerError
             };
 
-            var response = _env.IsDevelopment()
-                ? new { Status = context.Response.StatusCode, Message = ex.Message, StackTrace = ex.StackTrace }
-                : new { Status = context.Response.StatusCode, Message = context.Response.StatusCode == 500 ? "An internal server error occurred." : ex.Message, StackTrace = (string?)null };
+            var message = _env.IsDevelopment() 
+                ? ex.Message 
+                : (context.Response.StatusCode == 500 ? "Đã có lỗi hệ thống xảy ra." : ex.Message);
+
+            var response = new TechShop.Application.Common.Models.ApiResponse<object>
+            {
+                Success = false,
+                Message = message,
+                Data = _env.IsDevelopment() ? new { StackTrace = ex.StackTrace } : null
+            };
 
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             var json = JsonSerializer.Serialize(response, options);

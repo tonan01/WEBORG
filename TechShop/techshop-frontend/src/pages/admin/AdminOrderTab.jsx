@@ -1,6 +1,7 @@
 import React from 'react';
 import { Table, Button, Form, Badge } from 'react-bootstrap';
 import PaginationComponent from '../../components/PaginationComponent';
+import { formatCurrency, formatDate } from '../../utils/formatters';
 
 const AdminOrderTab = ({ 
     orders, 
@@ -54,7 +55,7 @@ const AdminOrderTab = ({
                         <tr key={o.id}>
                             <td className="text-muted small">{(orderPage - 1) * 10 + index + 1}</td>
                             <td className="fw-bold text-muted">#ORD-{o.id}</td>
-                            <td className="small">{new Date(o.orderDate).toLocaleDateString()}</td>
+                            <td className="small">{formatDate(o.orderDate)}</td>
                             <td>
                                 <Badge bg={
                                     o.status === 'Pending' ? 'warning' : 
@@ -64,7 +65,7 @@ const AdminOrderTab = ({
                                     {o.status}
                                 </Badge>
                             </td>
-                            <td className="fw-bold text-primary">{new Intl.NumberFormat('vi-VN').format(o.totalAmount)} VNĐ</td>
+                            <td className="fw-bold text-primary">{formatCurrency(o.totalAmount)}</td>
                             <td style={{ width: '180px' }}>
                                 <Form.Select 
                                     size="sm" 

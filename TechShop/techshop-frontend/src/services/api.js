@@ -12,6 +12,32 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+// Response interceptor to handle centralized ApiResponse<T>
+api.interceptors.response.use(
+    (response) => {
+        const res = response.data;
+        // Check if the response follows the ApiResponse structure
+        if (res && typeof res.success !== 'undefined') {
+            if (res.success) {
+                // Replace the response data with the actual data payload
+                return { ...response, data: res.data };
+            } else {
+                // If the server returned success: false, treat it as an error
+                return Promise.reject({
+                    response: {
+                        data: { message: res.message || 'Thao tác thất bại' }
+                    }
+                });
+            }
+        }
+        return response;
+    },
+    (error) => {
+        // Standard HTTP error handling
+        return Promise.reject(error);
+    }
+);
+
 export const authService = {
     login: (username, password) => api.post('/auth/login', { username, password }),
     register: (data) => api.post('/auth/register', data), // data: { username, password, email, fullName, phone }

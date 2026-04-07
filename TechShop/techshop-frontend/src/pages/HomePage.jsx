@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Button, Row, Col, Form, InputGroup, Container, Badge } from 'react-bootstrap';
 import PaginationComponent from '../components/PaginationComponent';
 import { useNavigate } from 'react-router-dom';
-import { productService, cartService, categoryService } from '../services/api';
-import { AuthContext } from '../context/AuthContext';
+import { authService, productService, cartService, categoryService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
+import { formatCurrency } from '../utils/formatters';
 
 function HomePage() {
     const [products, setProducts] = useState([]);
@@ -14,7 +15,7 @@ function HomePage() {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [keyword, setKeyword] = useState('');
     const [loading, setLoading] = useState(false);
-    const { user } = useContext(AuthContext);
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     const buildCategoryTree = (flatCategories) => {
@@ -198,7 +199,7 @@ function HomePage() {
                                             </Card.Text>
                                              <div className="d-flex justify-content-between align-items-center">
                                                 <h4 className="text-primary mb-0">
-                                                    {new Intl.NumberFormat('vi-VN').format(p.price)} VNĐ
+                                                    {formatCurrency(p.price)}
                                                 </h4>
                                                 <span className="small text-muted">{p.stock} trong kho</span>
                                             </div>

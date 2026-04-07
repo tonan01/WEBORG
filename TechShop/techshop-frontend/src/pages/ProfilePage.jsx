@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Image, Spinner, Badge, Accordion } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { authService, uploadService } from '../services/api';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
 function ProfilePage() {
-    const { user, logout } = useContext(AuthContext);
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [profile, setProfile] = useState({
         username: '',

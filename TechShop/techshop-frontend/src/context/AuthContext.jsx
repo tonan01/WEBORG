@@ -1,11 +1,11 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { authService } from '../services/api';
 
-export const AuthContext = createContext();
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // Trạng thái chờ khởi tạo
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
         if (token && username) {
             setUser({ username, token, role, avatarUrl });
         }
-        setLoading(false); // Đã kiểm tra xong
+        setLoading(false);
     }, []);
 
     const login = async (username, password) => {
@@ -43,3 +43,13 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
+
+export { AuthContext };

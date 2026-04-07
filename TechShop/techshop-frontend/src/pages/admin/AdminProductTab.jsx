@@ -1,6 +1,7 @@
 import React from 'react';
 import { Table, Button, Form, Badge } from 'react-bootstrap';
 import PaginationComponent from '../../components/PaginationComponent';
+import { formatCurrency } from '../../utils/formatters';
 
 const AdminProductTab = ({ 
     products, 
@@ -64,7 +65,7 @@ const AdminProductTab = ({
                             </td>
                             <td><Badge bg="light" text="primary" className="rounded-pill p-1 px-3">{p.categoryName}</Badge></td>
                             <td className={`fw-bold ${p.isDeleted ? 'text-decoration-line-through' : ''}`}>
-                                {new Intl.NumberFormat('vi-VN').format(p.price)} VNĐ
+                                {formatCurrency(p.price)}
                             </td>
                             <td>
                                 <Badge bg={p.stock < 5 ? 'warning' : 'light'} text={p.stock < 5 ? 'white' : 'dark'}>{p.stock}</Badge>

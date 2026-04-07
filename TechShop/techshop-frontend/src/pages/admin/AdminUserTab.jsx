@@ -3,6 +3,7 @@ import { Table, Button, Badge, Form } from 'react-bootstrap';
 import { userService } from '../../services/api';
 import { toast } from 'react-hot-toast';
 import PaginationComponent from '../../components/PaginationComponent';
+import { formatDate } from '../../utils/formatters';
 
 function AdminUserTab() {
     const [users, setUsers] = useState([]);
@@ -130,7 +131,7 @@ function AdminUserTab() {
                                         <Badge bg="success">Hoạt động</Badge>
                                     )}
                                 </td>
-                                <td>{new Date(user.createdDate).toLocaleDateString('vi-VN')}</td>
+                                <td>{formatDate(user.createdDate)}</td>
                                 <td className="text-end">
                                     <Button 
                                         variant={user.isLocked ? "success" : "warning"} 

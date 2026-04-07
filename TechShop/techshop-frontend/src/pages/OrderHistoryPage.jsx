@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Container, Card, Row, Col, Badge, Table } from 'react-bootstrap';
 import PaginationComponent from '../components/PaginationComponent';
 import { orderService } from '../services/api';
+import { formatCurrency, formatDate } from '../utils/formatters';
+import { toast } from 'react-hot-toast';
 
 function OrderHistoryPage() {
     const [orders, setOrders] = useState([]);
@@ -51,7 +53,7 @@ function OrderHistoryPage() {
                                 <div>
                                     <span className="text-muted small">Mã đơn hàng: </span>
                                     <span className="fw-bold">#ORD-{order.id}</span>
-                                    <div className="text-muted small">{new Date(order.orderDate).toLocaleDateString()}</div>
+                                    <div className="text-muted small">{formatDate(order.orderDate)}</div>
                                 </div>
                                 <Badge bg={
                                     order.status === 'Pending' ? 'warning' : 
@@ -72,7 +74,7 @@ function OrderHistoryPage() {
                                         {order.details.map((detail, idx) => (
                                             <div key={idx} className="d-flex justify-content-between mb-2">
                                                 <span>{detail.productName} <span className="text-muted small">x{detail.quantity}</span></span>
-                                                <span className="fw-bold">{new Intl.NumberFormat('vi-VN').format(detail.unitPrice * detail.quantity)} VNĐ</span>
+                                                <span className="fw-bold">{formatCurrency(detail.unitPrice * detail.quantity)}</span>
                                             </div>
                                         ))}
                                     </Col>
@@ -88,7 +90,7 @@ function OrderHistoryPage() {
                                 <hr />
                                 <div className="d-flex justify-content-between align-items-center">
                                     <span className="h5 mb-0">Tổng số tiền</span>
-                                    <span className="h4 text-primary mb-0">{new Intl.NumberFormat('vi-VN').format(order.totalAmount)} VNĐ</span>
+                                    <span className="h4 text-primary mb-0">{formatCurrency(order.totalAmount)}</span>
                                 </div>
                             </Card.Body>
                         </Card>

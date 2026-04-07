@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using TechShop.Application.Interfaces;
+using TechShop.Application.Common.Models;
 
 namespace TechShop.API.Controllers;
 
@@ -23,18 +24,18 @@ public class UploadController : ControllerBase
     {
         if (file == null || file.Length == 0)
         {
-            return BadRequest("No file uploaded");
+            return BadRequest(ApiResponse<object>.FailureResult("Không có file được tải lên."));
         }
 
         try
         {
             await using var stream = file.OpenReadStream();
             var imageUrl = await _cloudinaryService.UploadImageAsync(stream, file.FileName);
-            return Ok(new { url = imageUrl });
+            return Ok(ApiResponse<object>.SuccessResult(new { url = imageUrl }, "Tải ảnh lên thành công"));
         }
         catch (System.Exception ex)
         {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            return StatusCode(500, ApiResponse<object>.FailureResult($"Lỗi hệ thống: {ex.Message}"));
         }
     }
 }

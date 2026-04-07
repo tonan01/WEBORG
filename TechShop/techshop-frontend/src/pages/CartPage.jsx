@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Table, Button, Card, Row, Col, Form } from 'react-bootstrap';
 import { cartService, orderService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
+import { formatCurrency } from '../utils/formatters';
 
 function CartPage() {
-    const { user } = useContext(AuthContext);
+    const { user } = useAuth();
     const [cart, setCart] = useState(null);
     const [showCheckout, setShowCheckout] = useState(false);
     const [checkoutData, setCheckoutData] = useState({
@@ -107,7 +108,7 @@ function CartPage() {
                                         <td className="py-3">
                                             <div className="fw-bold">{item.productName}</div>
                                         </td>
-                                        <td className="py-3">{new Intl.NumberFormat('vi-VN').format(item.unitPrice)} VNĐ</td>
+                                        <td className="py-3">{formatCurrency(item.unitPrice)}</td>
                                         <td className="py-3">
                                             <div className="d-flex align-items-center">
                                                 <Button size="sm" variant="light" onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}>-</Button>
@@ -115,7 +116,7 @@ function CartPage() {
                                                 <Button size="sm" variant="light" onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>+</Button>
                                             </div>
                                         </td>
-                                        <td className="py-3 text-end fw-bold">{new Intl.NumberFormat('vi-VN').format(item.unitPrice * item.quantity)} VNĐ</td>
+                                        <td className="py-3 text-end fw-bold">{formatCurrency(item.unitPrice * item.quantity)}</td>
                                         <td className="py-3 text-end">
                                             <Button variant="outline-danger" size="sm" onClick={() => handleRemove(item.id)}>×</Button>
                                         </td>
@@ -132,7 +133,7 @@ function CartPage() {
                             <h4 className="mb-4">Tóm tắt đơn hàng</h4>
                             <div className="d-flex justify-content-between mb-2">
                                 <span className="text-muted">Tạm tính</span>
-                                <span className="fw-bold">{new Intl.NumberFormat('vi-VN').format(cart.totalPrice)} VNĐ</span>
+                                <span className="fw-bold">{formatCurrency(cart.totalPrice)}</span>
                             </div>
                             <div className="d-flex justify-content-between mb-4">
                                 <span className="text-muted">Giao hàng</span>
@@ -141,7 +142,7 @@ function CartPage() {
                             <hr />
                             <div className="d-flex justify-content-between mb-4">
                                 <h5 className="mb-0">Tổng cộng</h5>
-                                <h5 className="text-primary">{new Intl.NumberFormat('vi-VN').format(cart.totalPrice)} VNĐ</h5>
+                                <h5 className="text-primary">{formatCurrency(cart.totalPrice)}</h5>
                             </div>
 
                             {!showCheckout ? (

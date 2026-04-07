@@ -3,6 +3,7 @@ import { Container, Tabs, Tab, Button, Modal, Form, Card, Row, Col, Table } from
 import { productService, categoryService, orderService, uploadService } from '../services/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { toast } from 'react-hot-toast';
+import { formatCurrency } from '../utils/formatters';
 
 // Sub-components
 import AdminProductTab from './admin/AdminProductTab';
@@ -258,7 +259,7 @@ function AdminPage() {
                                             <Card className="text-center border-0 bg-light shadow-sm mb-3">
                                                 <Card.Body>
                                                     <div className="text-muted small mb-1">Tổng doanh thu</div>
-                                                    <h3 className="text-primary mb-0">{new Intl.NumberFormat('vi-VN').format(stats.totalRevenue)} VNĐ</h3>
+                                                    <h3 className="text-primary mb-0">{formatCurrency(stats.totalRevenue)}</h3>
                                                 </Card.Body>
                                             </Card>
                                         </Col>
@@ -295,7 +296,7 @@ function AdminPage() {
                                                 <BarChart data={stats.monthlyRevenue}>
                                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                                     <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                                                    <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${new Intl.NumberFormat('vi-VN').format(val)} VNĐ`} />
+                                                    <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => formatCurrency(val)} />
                                                     <Tooltip 
                                                         cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
                                                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
@@ -333,15 +334,15 @@ function AdminPage() {
                                         {selectedOrder.details.map((d, i) => (
                                             <tr key={i} className="border-bottom pb-2">
                                                 <td className="py-2"><b>{d.productName}</b> <br/> <small className="text-muted">Qty: {d.quantity}</small></td>
-                                                <td className="text-end py-2">{new Intl.NumberFormat('vi-VN').format(d.unitPrice)} VNĐ</td>
-                                                <td className="text-end py-2 fw-bold">{new Intl.NumberFormat('vi-VN').format(d.unitPrice * d.quantity)} VNĐ</td>
+                                                <td className="text-end py-2">{formatCurrency(d.unitPrice)}</td>
+                                                <td className="text-end py-2 fw-bold">{formatCurrency(d.unitPrice * d.quantity)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </Table>
                                 <div className="d-flex justify-content-between h5 mt-4">
                                     <span>Tổng cộng:</span>
-                                    <span className="text-primary">{new Intl.NumberFormat('vi-VN').format(selectedOrder.totalAmount)} VNĐ</span>
+                                    <span className="text-primary">{formatCurrency(selectedOrder.totalAmount)}</span>
                                 </div>
                             </Col>
                             <Col md={5} className="border-start ps-4">

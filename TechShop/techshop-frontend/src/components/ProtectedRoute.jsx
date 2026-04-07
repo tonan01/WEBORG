@@ -1,11 +1,11 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 import { Container, Spinner } from 'react-bootstrap';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
-    const { user, loading } = useContext(AuthContext);
+    const { user, loading } = useAuth();
     const location = useLocation();
 
     // Nếu đang trong quá trình khôi phục phiên đăng nhập (F5 trang)
