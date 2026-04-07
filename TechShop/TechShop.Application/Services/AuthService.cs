@@ -11,7 +11,6 @@ using TechShop.Application.DTOs;
 using TechShop.Application.Interfaces;
 using TechShop.Domain.Entities;
 using TechShop.Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace TechShop.Application.Services;
@@ -120,7 +119,7 @@ public class AuthService : IAuthService
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(Id: ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role)
             }),
             Expires = DateTime.UtcNow.AddDays(expireDays),
             Issuer = issuer,
