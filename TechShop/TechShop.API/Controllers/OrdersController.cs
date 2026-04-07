@@ -48,10 +48,11 @@ public class OrdersController : ControllerBase
     [HttpGet("all")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllOrders(
+        [FromQuery] string? status = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var orders = await _orderService.GetAllOrdersAsync(page, pageSize);
+        var orders = await _orderService.GetAllOrdersAsync(status, page, pageSize);
         return Ok(orders);
     }
 

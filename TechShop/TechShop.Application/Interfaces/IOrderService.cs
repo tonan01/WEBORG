@@ -9,7 +9,7 @@ public interface IOrderService
     Task<OrderDto?> CreateOrderFromCartAsync(int userId, CheckoutDto checkoutDto);
     Task<PagedResult<OrderDto>> GetUserOrdersAsync(int userId, int pageNumber = 1, int pageSize = 10);
     // Quyền Admin
-    Task<PagedResult<OrderDto>> GetAllOrdersAsync(int pageNumber = 1, int pageSize = 10);
+    Task<PagedResult<OrderDto>> GetAllOrdersAsync(string? status = null, int pageNumber = 1, int pageSize = 10);
     Task<bool> UpdateOrderStatusAsync(int orderId, string status);
     Task<AdminStatsDto> GetDashboardStatsAsync();
 }

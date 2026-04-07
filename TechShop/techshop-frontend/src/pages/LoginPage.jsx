@@ -19,7 +19,8 @@ function LoginPage() {
             toast.success('Đăng nhập thành công!');
             navigate('/');
         } catch (err) {
-            toast.error(err.response?.data || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+            const errorMsg = err.response?.data?.message || err.response?.data || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }

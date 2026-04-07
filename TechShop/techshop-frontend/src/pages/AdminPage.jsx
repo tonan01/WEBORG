@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Tabs, Tab, Button, Modal, Form, Card, Row, Col } from 'react-bootstrap';
+import { Container, Tabs, Tab, Button, Modal, Form, Card, Row, Col, Table } from 'react-bootstrap';
 import { productService, categoryService, orderService, uploadService } from '../services/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { toast } from 'react-hot-toast';
@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import AdminProductTab from './admin/AdminProductTab';
 import AdminCategoryTab from './admin/AdminCategoryTab';
 import AdminOrderTab from './admin/AdminOrderTab';
+import AdminUserTab from './admin/AdminUserTab';
 
 function AdminPage() {
     console.log('AdminPage Component Rendering...');
@@ -19,6 +20,7 @@ function AdminPage() {
     const [orders, setOrders] = useState([]);
     const [orderPage, setOrderPage] = useState(1);
     const [orderTotalPages, setOrderTotalPages] = useState(1);
+    const [orderStatus, setOrderStatus] = useState(''); // Empty string means all
     const [stats, setStats] = useState(null);
     const [activeTab, setActiveTab] = useState('dashboard');
     const [uploading, setUploading] = useState(false);
@@ -46,7 +48,7 @@ function AdminPage() {
             const [prodRes, catRes, orderRes, statsRes] = await Promise.all([
                 productService.getAllWithDeleted(prodPage, 10),
                 categoryService.getAll(),
-                orderService.getAll(orderPage, 10),
+                orderService.getAll(orderStatus, orderPage, 10),
                 orderService.getAdminStats()
             ]);
             setProducts(prodRes.data.items);
@@ -62,7 +64,7 @@ function AdminPage() {
 
     useEffect(() => {
         loadData();
-    }, [prodPage, orderPage]);
+    }, [prodPage, orderPage, orderStatus]);
 
     // --- Product Handlers ---
     const handleImageUpload = async (e) => {
@@ -209,11 +211,17 @@ function AdminPage() {
                             orderPage={orderPage}
                             setOrderPage={setOrderPage}
                             orderTotalPages={orderTotalPages}
+                            orderStatus={orderStatus}
+                            setOrderStatus={setOrderStatus}
                             loadData={loadData}
                             handleUpdateOrderStatus={handleUpdateOrderStatus}
                             setSelectedOrder={setSelectedOrder}
                             setShowOrderModal={setShowOrderModal}
                         />
+                    </Tab>
+
+                    <Tab eventKey="users" title="Người dùng">
+                        <AdminUserTab />
                     </Tab>
 
                     <Tab eventKey="dashboard" title="Tổng quan">

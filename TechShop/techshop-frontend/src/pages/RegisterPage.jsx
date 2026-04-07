@@ -27,7 +27,8 @@ function RegisterPage() {
             toast.success('Đăng ký thành công! Vui lòng đăng nhập.');
             navigate('/login');
         } catch (err) {
-            toast.error(err.response?.data || 'Đăng ký thất bại. Tên đăng nhập có thể đã tồn tại.');
+            const errorMsg = err.response?.data?.message || err.response?.data || 'Đăng ký thất bại. Tên đăng nhập hoặc Email có thể đã tồn tại.';
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }

@@ -11,6 +11,8 @@ public interface IRepository<T> where T : class
     Task<T?> GetByIdAsync(int id);
     Task<T?> GetByIdWithIncludesAsync(int id, params Expression<Func<T, object>>[] includes);
     Task<T?> GetByIdIgnoreFiltersAsync(int id);
+    Task<T?> FindAsync(Expression<Func<T, bool>> predicate);
+    Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> predicate);
 
     /// <summary>Lấy IQueryable để phân trang/lọc tại Database level</summary>
     IQueryable<T> GetQueryable(params Expression<Func<T, object>>[] includes);

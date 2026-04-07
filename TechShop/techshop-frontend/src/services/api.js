@@ -53,8 +53,8 @@ export const orderService = {
     getHistory: (page = 1, pageSize = 10) => 
         api.get('/orders/history', { params: { page, pageSize } }),
     // Quyền Admin
-    getAll: (page = 1, pageSize = 10) => 
-        api.get('/orders/all', { params: { page, pageSize } }),
+    getAll: (status = '', page = 1, pageSize = 10) => 
+        api.get('/orders/all', { params: { status, page, pageSize } }),
     updateStatus: (id, status) => api.put(`/orders/${id}/status`, JSON.stringify(status), { headers: { 'Content-Type': 'application/json' } }),
     getAdminStats: () => api.get('/orders/admin/stats')
 };
@@ -69,6 +69,13 @@ export const uploadService = {
             },
         });
     },
+};
+
+export const userService = {
+    getAll: (role = '', isLocked = '', page = 1, pageSize = 10) => 
+        api.get('/users', { params: { role, isLocked, page, pageSize } }),
+    toggleLock: (id) => api.post(`/users/${id}/toggle-lock`),
+    updateRole: (id, role) => api.post(`/users/${id}/role`, { role }),
 };
 
 export default api;

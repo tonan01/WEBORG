@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using TechShop.Application.DTOs;
 using TechShop.Application.Interfaces;
@@ -120,9 +121,14 @@ public class OrderService : IOrderService
         return new PagedResult<OrderDto>(dtos, totalCount, pageNumber, pageSize);
     }
 
-    public async Task<PagedResult<OrderDto>> GetAllOrdersAsync(int pageNumber = 1, int pageSize = 10)
+    public async Task<PagedResult<OrderDto>> GetAllOrdersAsync(string? status = null, int pageNumber = 1, int pageSize = 10)
     {
         var query = _orderRepo.GetQueryable(o => o.OrderDetails);
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            query = query.Where(o => o.Status == status);
+        }
         
         var totalCount = await query.CountAsync();
         var items = await query

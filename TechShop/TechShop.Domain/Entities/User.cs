@@ -5,6 +5,7 @@ public class User : AuditableEntity
     public string Username { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public string Role { get; set; } = "User"; // Admin, User
+    public bool IsLocked { get; set; } = false;
 
     // Profile
     public string? Email { get; set; }

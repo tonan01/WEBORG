@@ -10,7 +10,8 @@ import { Pagination } from 'react-bootstrap';
  * @param {boolean} autoScroll - whether to scroll to top on change
  */
 const PaginationComponent = ({ currentPage, totalPages, onPageChange, size = "sm", autoScroll = true }) => {
-    if (totalPages <= 1) return null;
+    // Xóa bỏ return null khi totalPages <= 1 để giao diện các trang luôn đồng nhất
+    // if (totalPages <= 1) return null;
 
     const handlePageClick = (page) => {
         if (page !== currentPage && page >= 1 && page <= totalPages) {

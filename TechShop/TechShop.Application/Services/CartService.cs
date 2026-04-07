@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using TechShop.Application.DTOs;
 using TechShop.Application.Interfaces;

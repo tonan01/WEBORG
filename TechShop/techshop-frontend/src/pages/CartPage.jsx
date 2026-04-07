@@ -156,9 +156,7 @@ function CartPage() {
                                                 value={checkoutData.paymentMethod}
                                                 onChange={(e) => setCheckoutData({...checkoutData, paymentMethod: e.target.value})}
                                             >
-                                                <option value="COD">Thanh toán khi nhận hàng (COD)</option>
-                                                <option value="BankTransfer">Chuyển khoản ngân hàng</option>
-                                                <option value="CreditCard">Thẻ tín dụng</option>
+                                                <option value="COD">Thanh toán khi nhận hàng (Tiền mặt)</option>
                                             </Form.Select>
                                         </Form.Group>
                                         <Form.Group className="mb-4">

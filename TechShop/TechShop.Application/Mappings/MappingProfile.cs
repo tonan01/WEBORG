@@ -34,6 +34,7 @@ public class MappingProfile : Profile
 
         // Auth mappings
         CreateMap<User, AuthResponseDto>();
+        CreateMap<User, UserDto>();
         CreateMap<RegisterDto, User>();
         CreateMap<UpdateProfileDto, User>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));

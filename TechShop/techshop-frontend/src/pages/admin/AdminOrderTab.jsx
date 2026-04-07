@@ -7,6 +7,8 @@ const AdminOrderTab = ({
     orderPage, 
     setOrderPage, 
     orderTotalPages, 
+    orderStatus,
+    setOrderStatus,
     loadData, 
     handleUpdateOrderStatus, 
     setSelectedOrder, 
@@ -14,8 +16,25 @@ const AdminOrderTab = ({
 }) => {
     return (
         <div className="p-4">
-            <div className="d-flex justify-content-between mb-4">
-                <h5>Tất cả đơn hàng ({orders.length})</h5>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <div className="d-flex align-items-center gap-3">
+                    <h5 className="mb-0">Đơn hàng ({orders.length})</h5>
+                    <Form.Select 
+                        size="sm" 
+                        style={{ width: '200px' }}
+                        value={orderStatus}
+                        onChange={(e) => {
+                            setOrderStatus(e.target.value);
+                            setOrderPage(1);
+                        }}
+                    >
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="Pending">Chờ xử lý</option>
+                        <option value="Shipped">Đang giao</option>
+                        <option value="Delivered">Đã giao</option>
+                        <option value="Cancelled">Đã hủy</option>
+                    </Form.Select>
+                </div>
                 <Button variant="outline-secondary" onClick={loadData}>Làm mới</Button>
             </div>
             <Table responsive hover className="align-middle">

@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -10,6 +11,7 @@ using TechShop.Application.DTOs;
 using TechShop.Application.Interfaces;
 using TechShop.Domain.Entities;
 using TechShop.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace TechShop.Application.Services;
@@ -36,6 +38,11 @@ public class AuthService : IAuthService
             return null;
         }
 
+        if (user.IsLocked)
+        {
+            throw new InvalidOperationException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+        }
+
         var token = GenerateJwtToken(user);
         var response = _mapper.Map<AuthResponseDto>(user);
         response.Token = token;
@@ -45,10 +52,16 @@ public class AuthService : IAuthService
 
     public async Task<bool> RegisterAsync(RegisterDto registerDto)
     {
-        var existing = await _userRepository.FindAsync(u => u.Username == registerDto.Username);
-        if (existing != null)
+        var existingUser = await _userRepository.FindAsync(u => u.Username == registerDto.Username);
+        if (existingUser != null)
         {
-            return false;
+            throw new InvalidOperationException("Tên đăng nhập đã tồn tại trong hệ thống.");
+        }
+
+        var existingEmail = await _userRepository.FindAsync(u => u.Email == registerDto.Email);
+        if (existingEmail != null)
+        {
+            throw new InvalidOperationException("Địa chỉ email đã được sử dụng bởi một tài khoản khác.");
         }
 
         var user = _mapper.Map<User>(registerDto);
