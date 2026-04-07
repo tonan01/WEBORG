@@ -1,0 +1,29 @@
+# 🔒 Security & Environment
+*.env
+*.env.local
+*.env.*
+.env
+auth_key.txt
+
+# 📦 Dependencies
+node_modules/
+bin/
+obj/
+dist/
+dist-ssr/
+
+# 💻 IDE & OS
+.vscode/
+.idea/
+.vs/
+*.user
+*.suo
+*.sln.docstates
+.DS_Store
+Thumbs.db
+
+# 🛠️ Build Artifacts
+*.log
+build_errors*.txt
+pkg_list.txt
+test_results/

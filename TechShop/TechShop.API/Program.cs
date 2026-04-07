@@ -19,11 +19,13 @@ DotNetEnv.Env.Load();
 builder.Configuration.AddEnvironmentVariables();
 
 // Add services to the container.
+var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"]?.Split(',') ?? new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -71,7 +73,11 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
 // JWT Authentication
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "super_secret_key_needs_to_be_long_enough_1234567890!");
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "super_secret_key_needs_to_be_long_enough_1234567890!";
+var key = Encoding.ASCII.GetBytes(jwtKey);
+var issuer = builder.Configuration["Jwt:Issuer"];
+var audience = builder.Configuration["Jwt:Audience"];
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -85,8 +91,12 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false
+        ValidateIssuer = !string.IsNullOrEmpty(issuer),
+        ValidIssuer = issuer,
+        ValidateAudience = !string.IsNullOrEmpty(audience),
+        ValidAudience = audience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero // Tránh lỗi lệch múi giờ quá lâu
     };
 });
 

@@ -36,9 +36,9 @@ public class ExceptionMiddleware
                 _ => (int)HttpStatusCode.InternalServerError
             };
 
-            var response = _env.IsDevelopment() || context.Response.StatusCode != 500
+            var response = _env.IsDevelopment()
                 ? new { Status = context.Response.StatusCode, Message = ex.Message, StackTrace = ex.StackTrace }
-                : new { Status = context.Response.StatusCode, Message = "An internal server error occurred. Please try again later.", StackTrace = (string?)null };
+                : new { Status = context.Response.StatusCode, Message = context.Response.StatusCode == 500 ? "An internal server error occurred." : ex.Message, StackTrace = (string?)null };
 
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             var json = JsonSerializer.Serialize(response, options);

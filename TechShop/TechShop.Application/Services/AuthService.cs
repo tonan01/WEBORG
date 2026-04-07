@@ -109,15 +109,22 @@ public class AuthService : IAuthService
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_config["Jwt:Key"] ?? "super_secret_key_needs_to_be_long_enough_1234567890!");
 
+        var issuer = _config["Jwt:Issuer"];
+        var audience = _config["Jwt:Audience"];
+        var expireDaysStr = _config["Jwt:ExpireDays"] ?? "7";
+        if (!int.TryParse(expireDaysStr, out int expireDays)) expireDays = 7;
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(Id: ClaimTypes.Role, user.Role)
             }),
-            Expires = DateTime.UtcNow.AddDays(7),
+            Expires = DateTime.UtcNow.AddDays(expireDays),
+            Issuer = issuer,
+            Audience = audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
 
