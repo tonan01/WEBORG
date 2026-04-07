@@ -19,7 +19,8 @@ function AdminUserTab() {
             setUsers(res.data.items);
             setTotalPages(res.data.totalPages);
         } catch (err) {
-            toast.error('Không thể tải danh sách người dùng');
+            const msg = err.response?.data?.message || err.response?.data || 'Không thể tải danh sách người dùng';
+            toast.error(msg);
             console.error(err);
         } finally {
             setLoading(false);
@@ -36,7 +37,8 @@ function AdminUserTab() {
             toast.success('Cập nhật trạng thái thành công');
             loadUsers();
         } catch (err) {
-            toast.error('Thao tác thất bại');
+            const msg = err.response?.data?.message || err.response?.data || 'Thao tác thất bại';
+            toast.error(msg);
         }
     };
 
@@ -46,7 +48,8 @@ function AdminUserTab() {
             toast.success('Cập nhật quyền thành công');
             loadUsers();
         } catch (err) {
-            toast.error('Thao tác thất bại');
+            const msg = err.response?.data?.message || err.response?.data || 'Thao tác thất bại';
+            toast.error(msg);
         }
     };
 
@@ -91,7 +94,7 @@ function AdminUserTab() {
                 <Table hover className="align-middle">
                     <thead className="bg-light">
                         <tr>
-                            <th>ID</th>
+                            <th style={{ width: '50px' }}>#</th>
                             <th>Người dùng</th>
                             <th>Email</th>
                             <th>Vai trò</th>
@@ -101,9 +104,9 @@ function AdminUserTab() {
                         </tr>
                     </thead>
                     <tbody>
-                        {users.map(user => (
+                        {users.map((user, index) => (
                             <tr key={user.id}>
-                                <td>{user.id}</td>
+                                <td className="text-muted small">{(page - 1) * 10 + index + 1}</td>
                                <td>
                                     <div className="fw-bold">{user.username}</div>
                                     <small className="text-muted">{user.fullName}</small>

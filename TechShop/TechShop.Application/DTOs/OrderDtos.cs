@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace TechShop.Application.DTOs;
 
@@ -31,9 +30,15 @@ public class OrderDetailDto
 /// <summary>Thông tin giao hàng và thanh toán khi đặt hàng</summary>
 public class CheckoutDto
 {
+    [Required(ErrorMessage = "Vui lòng nhập địa chỉ giao hàng")]
+    [MaxLength(500)]
     public string? ShippingAddress { get; set; }
+
     /// <summary>COD | BankTransfer | CreditCard</summary>
+    [Required(ErrorMessage = "Vui lòng chọn phương thức thanh toán")]
     public string? PaymentMethod { get; set; }
+
+    [MaxLength(1000)]
     public string? Note { get; set; }
 }
 

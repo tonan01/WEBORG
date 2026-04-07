@@ -29,8 +29,8 @@ function ProductDetailPage() {
 
     const handleAddToCart = async () => {
         if (!user) {
-            toast.error('Please login to add to cart');
-            navigate('/login');
+            toast.error('Vui lòng đăng nhập để thêm vào giỏ hàng');
+            navigate('/login', { state: { from: `/product/${id}` } });
             return;
         }
         setAdding(true);

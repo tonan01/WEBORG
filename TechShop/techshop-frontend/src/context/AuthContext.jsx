@@ -5,15 +5,18 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true); // Trạng thái chờ khởi tạo
 
     useEffect(() => {
         const token = localStorage.getItem('token');
         const username = localStorage.getItem('username');
         const role = localStorage.getItem('role');
         const avatarUrl = localStorage.getItem('avatarUrl');
+        
         if (token && username) {
             setUser({ username, token, role, avatarUrl });
         }
+        setLoading(false); // Đã kiểm tra xong
     }, []);
 
     const login = async (username, password) => {
@@ -35,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

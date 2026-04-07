@@ -74,7 +74,7 @@ function HomePage() {
     const handleAddToCart = async (productId) => {
         if (!user) {
             toast.error('Vui lòng đăng nhập để thêm vào giỏ hàng');
-            navigate('/login');
+            navigate('/login', { state: { from: '/' } });
             return;
         }
         try {

@@ -18,6 +18,7 @@ function OrderHistoryPage() {
             setCurrentPage(res.data.pageNumber);
         } catch (err) {
             console.error('Error loading history', err);
+            toast.error(err.response?.data?.message || err.response?.data || 'Không thể tải lịch sử đơn hàng');
         } finally {
             setLoading(false);
         }

@@ -43,6 +43,7 @@ const AdminProductTab = ({
             <Table responsive hover className="align-middle">
                 <thead className="bg-light text-muted small uppercase">
                     <tr>
+                        <th style={{ width: '50px' }}>#</th>
                         <th>SKU/Tên</th>
                         <th>Danh mục</th>
                         <th>Giá</th>
@@ -51,8 +52,9 @@ const AdminProductTab = ({
                     </tr>
                 </thead>
                 <tbody>
-                    {products.map(p => (
+                    {products.map((p, index) => (
                         <tr key={p.id} className={p.isDeleted ? 'table-light opacity-75' : ''}>
+                            <td className="text-muted small">{(prodPage - 1) * 10 + index + 1}</td>
                             <td>
                                 <div className={`fw-bold ${p.isDeleted ? 'text-decoration-line-through text-danger' : ''}`}>
                                     {p.name} 

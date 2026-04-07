@@ -21,6 +21,8 @@ const AdminCategoryTab = ({
             <Table responsive hover className="align-middle">
                 <thead>
                     <tr>
+                        <th style={{ width: '50px' }}>#</th>
+                        <th style={{ width: '60px' }}>Ảnh</th>
                         <th>Tên</th>
                         <th>Danh mục cha</th>
                         <th>Mô tả</th>
@@ -28,8 +30,18 @@ const AdminCategoryTab = ({
                     </tr>
                 </thead>
                 <tbody>
-                    {categories.map(c => (
+                    {categories.map((c, index) => (
                         <tr key={c.id}>
+                            <td className="text-muted small">{index + 1}</td>
+                            <td>
+                                <img 
+                                    src={c.imageUrl || 'https://placehold.co/50?text=No'} 
+                                    alt={c.name} 
+                                    style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
+                                    className="border shadow-sm"
+                                    onError={(e) => { e.target.src = 'https://placehold.co/50?text=No'; }}
+                                />
+                            </td>
                             <td className="fw-bold">{c.name}</td>
                             <td>{c.parentCategoryName || <span className="text-muted small">Gốc (Root)</span>}</td>
                             <td className="small text-muted">{c.description || '-'}</td>

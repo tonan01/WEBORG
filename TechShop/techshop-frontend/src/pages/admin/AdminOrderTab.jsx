@@ -40,6 +40,7 @@ const AdminOrderTab = ({
             <Table responsive hover className="align-middle">
                 <thead className="bg-light text-muted small uppercase">
                     <tr>
+                        <th style={{ width: '50px' }}>#</th>
                         <th>Mã đơn hàng</th>
                         <th>Ngày đặt</th>
                         <th>Trạng thái</th>
@@ -49,8 +50,9 @@ const AdminOrderTab = ({
                     </tr>
                 </thead>
                 <tbody>
-                    {orders.map(o => (
+                    {orders.map((o, index) => (
                         <tr key={o.id}>
+                            <td className="text-muted small">{(orderPage - 1) * 10 + index + 1}</td>
                             <td className="fw-bold text-muted">#ORD-{o.id}</td>
                             <td className="small">{new Date(o.orderDate).toLocaleDateString()}</td>
                             <td>

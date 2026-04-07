@@ -63,7 +63,8 @@ function ProfilePage() {
             
             toast.success('Cập nhật hồ sơ thành công!');
         } catch (err) {
-            toast.error('Cập nhật thất bại');
+            const msg = err.response?.data?.message || err.response?.data || 'Cập nhật thất bại. Email có thể đã được sử dụng.';
+            toast.error(msg);
         } finally {
             setUpdating(false);
         }
@@ -109,7 +110,8 @@ function ProfilePage() {
             setProfile({ ...profile, avatarUrl: res.data.url });
             toast.success('Đã tải ảnh lên thành công!');
         } catch (err) {
-            toast.error('Tải ảnh thất bại');
+            const msg = err.response?.data?.message || err.response?.data || 'Tải ảnh thất bại';
+            toast.error(msg);
         } finally {
             setUploading(false);
         }

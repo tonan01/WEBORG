@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Container, Table, Button, Card, Row, Col, Form } from 'react-bootstrap';
 import { cartService, orderService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { AuthContext } from '../context/AuthContext';
 
 function CartPage() {
+    const { user } = useContext(AuthContext);
     const [cart, setCart] = useState(null);
     const [showCheckout, setShowCheckout] = useState(false);
     const [checkoutData, setCheckoutData] = useState({
@@ -61,6 +63,15 @@ function CartPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleProceedToCheckout = () => {
+        if (!user) {
+            toast.error('Vui lòng đăng nhập để thanh toán');
+            navigate('/login', { state: { from: '/cart' } });
+            return;
+        }
+        setShowCheckout(true);
     };
 
     if (!cart || cart.items.length === 0) {
@@ -134,7 +145,7 @@ function CartPage() {
                             </div>
 
                             {!showCheckout ? (
-                                <Button variant="primary" className="w-100 py-3 shadow" onClick={() => setShowCheckout(true)}>
+                                <Button variant="primary" className="w-100 py-3 shadow" onClick={handleProceedToCheckout}>
                                     Tiến hành thanh toán
                                 </Button>
                             ) : (

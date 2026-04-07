@@ -11,7 +11,6 @@ import AdminOrderTab from './admin/AdminOrderTab';
 import AdminUserTab from './admin/AdminUserTab';
 
 function AdminPage() {
-    console.log('AdminPage Component Rendering...');
     const [products, setProducts] = useState([]);
     const [prodPage, setProdPage] = useState(1);
     const [prodTotalPages, setProdTotalPages] = useState(1);
@@ -59,6 +58,7 @@ function AdminPage() {
             setStats(statsRes.data);
         } catch (err) {
             console.error('Error loading admin data', err);
+            toast.error(err.response?.data?.message || err.response?.data || 'Không thể tải dữ liệu quản trị');
         }
     };
 
@@ -77,7 +77,26 @@ function AdminPage() {
             setProductForm({ ...productForm, imageUrl: res.data.url });
             toast.success('Image uploaded to Cloudinary!');
         } catch (err) {
-            toast.error('Image upload failed');
+            const msg = err.response?.data?.message || err.response?.data || 'Image upload failed';
+            toast.error(msg);
+            console.error(err);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleCategoryImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const res = await uploadService.uploadImage(file);
+            setCategoryForm({ ...categoryForm, imageUrl: res.data.url });
+            toast.success('Category image uploaded!');
+        } catch (err) {
+            const msg = err.response?.data?.message || err.response?.data || 'Image upload failed';
+            toast.error(msg);
             console.error(err);
         } finally {
             setUploading(false);
@@ -104,7 +123,8 @@ function AdminPage() {
             setShowProdModal(false);
             loadData();
         } catch (err) {
-            toast.error('Failed to save product');
+            const msg = err.response?.data?.message || err.response?.data || 'Failed to save product';
+            toast.error(msg);
         }
     };
 
@@ -114,8 +134,9 @@ function AdminPage() {
             toast.success('Product deleted!');
             loadData();
         } catch (err) {
+            const msg = err.response?.data?.message || err.response?.data || 'Cannot delete product (likely in orders)';
+            toast.error(msg);
             console.error('Delete error:', err);
-            toast.error('Cannot delete product (likely in orders)');
         }
     };
 
@@ -125,7 +146,8 @@ function AdminPage() {
             toast.success('Product restored!');
             loadData();
         } catch (err) {
-            toast.error('Failed to restore product');
+            const msg = err.response?.data?.message || err.response?.data || 'Failed to restore product';
+            toast.error(msg);
         }
     };
 
@@ -144,7 +166,8 @@ function AdminPage() {
             setShowCatModal(false);
             loadData();
         } catch (err) {
-            toast.error('Failed to save category');
+            const msg = err.response?.data?.message || err.response?.data || 'Failed to save category';
+            toast.error(msg);
         }
     };
 
@@ -154,7 +177,8 @@ function AdminPage() {
             toast.success('Category deleted!');
             loadData();
         } catch (err) {
-            toast.error('Cannot delete category (likely contains products or subcategories)');
+            const msg = err.response?.data?.message || err.response?.data || 'Cannot delete category (likely contains products or subcategories)';
+            toast.error(msg);
         }
     };
 
@@ -165,7 +189,8 @@ function AdminPage() {
             toast.success('Order status updated!');
             loadData();
         } catch (err) {
-            toast.error('Failed to update order status');
+            const msg = err.response?.data?.message || err.response?.data || 'Failed to update order status';
+            toast.error(msg);
         }
     };
 
@@ -348,7 +373,34 @@ function AdminPage() {
                             </Form.Select>
                         </Form.Group>
                         <Form.Group className="mb-3"><Form.Control as="textarea" placeholder="Mô tả" value={categoryForm.description} onChange={e => setCategoryForm({...categoryForm, description: e.target.value})} /></Form.Group>
-                        <Form.Group className="mb-3"><Form.Control placeholder="Đường dẫn ảnh (URL)" value={categoryForm.imageUrl} onChange={e => setCategoryForm({...categoryForm, imageUrl: e.target.value})} /></Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label className="small fw-bold">Hình ảnh danh mục</Form.Label>
+                            <div className="d-flex gap-2 align-items-start mb-2">
+                                <div className="flex-grow-1">
+                                    <Form.Control 
+                                        placeholder="Đường dẫn ảnh (URL)" 
+                                        value={categoryForm.imageUrl || ''} 
+                                        onChange={e => setCategoryForm({...categoryForm, imageUrl: e.target.value})} 
+                                    />
+                                </div>
+                                {categoryForm.imageUrl && (
+                                    <img 
+                                        src={categoryForm.imageUrl} 
+                                        alt="Preview" 
+                                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }}
+                                        className="border"
+                                        onError={(e) => { e.target.src = 'https://placehold.co/100?text=Error'; }}
+                                    />
+                                )}
+                            </div>
+                            <Form.Control 
+                                type="file" 
+                                accept="image/*"
+                                onChange={handleCategoryImageUpload}
+                                disabled={uploading}
+                            />
+                            {uploading && <div className="small text-primary mt-1">Đang tải lên Cloudinary...</div>}
+                        </Form.Group>
                     </Modal.Body>
                     <Modal.Footer className="border-0">
                         <Button variant="light" onClick={() => setShowCatModal(false)}>Hủy</Button>
