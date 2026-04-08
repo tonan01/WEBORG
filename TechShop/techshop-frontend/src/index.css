@@ -109,7 +109,7 @@ h1, h2, h3, h4, h5, .navbar-brand {
 }
 
 /* Buttons */
-.btn-primary, .btn-outline-dark, .btn-luxury {
+.btn-primary, .btn-outline-dark, .btn-luxury, .rounded-pill.px-4 {
   padding: 0.8rem 2rem !important;
   border-radius: 14px !important;
   font-weight: 600 !important;
@@ -118,6 +118,7 @@ h1, h2, h3, h4, h5, .navbar-brand {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  white-space: nowrap;
 }
 
 @media (max-width: 575.98px) {

@@ -39,6 +39,9 @@ public class TechShopDbContext : DbContext
             .Property(p => p.Price)
             .HasColumnType("decimal(18,2)");
 
+        modelBuilder.Entity<Product>()
+            .ToTable(t => t.HasCheckConstraint("CK_Product_Stock", "[Stock] >= 0"));
+
         modelBuilder.Entity<Order>()
             .Property(o => o.TotalAmount)
             .HasColumnType("decimal(18,2)");

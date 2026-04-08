@@ -98,6 +98,11 @@ public class OrderService : IOrderService
 
             return await GetOrderByIdAsync(order.Id);
         }
+        catch (DbUpdateException)
+        {
+            await _orderRepo.RollbackTransactionAsync();
+            throw new InvalidOperationException("Một số sản phẩm trong giỏ hàng đã hết hàng hoặc không đủ số lượng tồn kho. Vui lòng kiểm tra lại.");
+        }
         catch (Exception)
         {
             await _orderRepo.RollbackTransactionAsync();
