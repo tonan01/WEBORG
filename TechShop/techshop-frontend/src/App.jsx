@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import NavbarComponent from './components/NavbarComponent';
+import MobileBottomNav from './components/MobileBottomNav';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -15,7 +17,8 @@ import { Toaster } from 'react-hot-toast';
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <CartProvider>
+        <Router>
         <NavbarComponent />
         <div className="app-content">
           <Routes>
@@ -49,6 +52,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
+        <MobileBottomNav />
         <Toaster 
           position="top-right"
           toastOptions={{
@@ -80,6 +84,7 @@ function App() {
           }}
         />
       </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }

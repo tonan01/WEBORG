@@ -4,6 +4,7 @@ import PaginationComponent from '../components/PaginationComponent';
 import { useNavigate } from 'react-router-dom';
 import { authService, productService, cartService, categoryService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../utils/formatters';
 
@@ -16,6 +17,7 @@ function HomePage() {
     const [keyword, setKeyword] = useState('');
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
+    const { refreshCartCount } = useCart();
     const navigate = useNavigate();
 
     const buildCategoryTree = (flatCategories) => {
@@ -81,6 +83,7 @@ function HomePage() {
         try {
             await cartService.add(productId, 1);
             toast.success('Đã thêm vào giỏ hàng!');
+            refreshCartCount();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Lỗi khi thêm vào giỏ hàng');
         }
@@ -89,46 +92,60 @@ function HomePage() {
     return (
         <Container className="py-4 animate-fade">
             <Row>
-                {/* Sidebar Categories */}
+                {/* Categories - Mobile Pill View & Desktop Sidebar */}
                 <Col md={3} className="mb-4">
-                    <div className="glass-card p-3 sticky-top" style={{ top: '100px', zIndex: 10 }}>
+                    <div className="glass-card p-3 sticky-top d-none d-md-block" style={{ top: '100px', zIndex: 10 }}>
                         <h5 className="mb-3 px-2">Danh mục</h5>
-                        {selectedCategory === null ? (
+                        <div className="categories-container">
                             <div 
-                                className="category-item active"
+                                className={`category-item ${selectedCategory === null ? 'active' : ''}`}
                                 onClick={() => setSelectedCategory(null)}
                             >
                                 Tất cả sản phẩm
                             </div>
-                        ) : (
-                            <div 
-                                className="category-item"
-                                onClick={() => setSelectedCategory(null)}
-                            >
-                                Tất cả sản phẩm
-                            </div>
-                        )}
 
-                        {buildCategoryTree(categories).map(cat => (
-                            <div key={cat.id}>
+                            {buildCategoryTree(categories).map(cat => (
+                                <div key={cat.id}>
+                                    <div 
+                                        className={`category-item ${selectedCategory === cat.id ? 'active' : ''}`}
+                                        onClick={() => setSelectedCategory(cat.id)}
+                                    >
+                                        {cat.name}
+                                    </div>
+                                    {cat.children.length > 0 && cat.children.map(child => (
+                                        <div 
+                                            key={child.id} 
+                                            className={`category-item small ps-4 ${selectedCategory === child.id ? 'active' : ''}`}
+                                            onClick={() => setSelectedCategory(child.id)}
+                                            style={{ fontSize: '0.85rem' }}
+                                        >
+                                            — {child.name}
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Mobile Pill Scroll */}
+                    <div className="d-md-none mb-3">
+                        <div className="category-pills-container">
+                            <div 
+                                className={`category-pill ${selectedCategory === null ? 'active' : ''}`}
+                                onClick={() => setSelectedCategory(null)}
+                            >
+                                Tất cả
+                            </div>
+                            {categories.map(cat => (
                                 <div 
-                                    className={`category-item ${selectedCategory === cat.id ? 'active' : ''}`}
+                                    key={cat.id}
+                                    className={`category-pill ${selectedCategory === cat.id ? 'active' : ''}`}
                                     onClick={() => setSelectedCategory(cat.id)}
                                 >
                                     {cat.name}
                                 </div>
-                                {cat.children.length > 0 && cat.children.map(child => (
-                                    <div 
-                                        key={child.id} 
-                                        className={`category-item small ps-4 ${selectedCategory === child.id ? 'active' : ''}`}
-                                        onClick={() => setSelectedCategory(child.id)}
-                                        style={{ fontSize: '0.85rem' }}
-                                    >
-                                        — {child.name}
-                                    </div>
-                                ))}
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </Col>
 
@@ -168,7 +185,7 @@ function HomePage() {
                                     <p className="text-muted">Không tìm thấy thiết bị nào trong danh mục này.</p>
                                 </Col>
                             ) : products.map(p => (
-                                <Col lg={4} md={6} key={p.id} className="mb-4">
+                                <Col lg={4} sm={6} key={p.id} className="mb-4">
                                     <Card className="glass-card h-100 border-0 overflow-hidden shadow-hover">
                                         <div 
                                             onClick={() => navigate(`/product/${p.id}`)}

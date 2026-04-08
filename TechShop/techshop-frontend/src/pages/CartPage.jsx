@@ -4,10 +4,12 @@ import { cartService, orderService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/formatters';
 
 function CartPage() {
     const { user } = useAuth();
+    const { refreshCartCount } = useCart();
     const [cart, setCart] = useState(null);
     const [showCheckout, setShowCheckout] = useState(false);
     const [checkoutData, setCheckoutData] = useState({
@@ -36,6 +38,7 @@ function CartPage() {
         try {
             await cartService.update(itemId, newQty);
             loadCart();
+            refreshCartCount();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Error updating quantity');
         }
@@ -45,6 +48,7 @@ function CartPage() {
         try {
             await cartService.remove(itemId);
             loadCart();
+            refreshCartCount();
         } catch (err) {
             console.error('Error removing item', err);
         }
@@ -57,6 +61,7 @@ function CartPage() {
             await orderService.checkout(checkoutData);
             toast.success('Đặt hàng thành công!');
             setCart(null);
+            refreshCartCount();
             navigate('/history');
         } catch (err) {
             const errorMsg = err.response?.data?.message || err.response?.data || 'Đặt hàng thất bại. Vui lòng kiểm tra kho hàng hoặc đăng nhập.';
@@ -91,39 +96,73 @@ function CartPage() {
             <h2 className="mb-4 display-6">Giỏ hàng</h2>
             <Row>
                 <Col lg={8}>
-                    <div className="glass-card p-4 mb-4">
-                        <Table responsive hover className="mb-0">
-                            <thead>
-                                <tr>
-                                    <th className="border-0">Sản phẩm</th>
-                                    <th className="border-0">Giá</th>
-                                    <th className="border-0">Số lượng</th>
-                                    <th className="border-0 text-end">Tổng cộng</th>
-                                    <th className="border-0"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                 {cart.items.map(item => (
-                                    <tr key={item.id}>
-                                        <td className="py-3">
-                                            <div className="fw-bold">{item.productName}</div>
-                                        </td>
-                                        <td className="py-3">{formatCurrency(item.unitPrice)}</td>
-                                        <td className="py-3">
-                                            <div className="d-flex align-items-center">
-                                                <Button size="sm" variant="light" onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}>-</Button>
-                                                <span className="mx-3">{item.quantity}</span>
-                                                <Button size="sm" variant="light" onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>+</Button>
-                                            </div>
-                                        </td>
-                                        <td className="py-3 text-end fw-bold">{formatCurrency(item.unitPrice * item.quantity)}</td>
-                                        <td className="py-3 text-end">
-                                            <Button variant="outline-danger" size="sm" onClick={() => handleRemove(item.id)}>×</Button>
-                                        </td>
+                    <div className="mb-4">
+                        {/* Desktop View Table */}
+                        <div className="glass-card p-4 d-none d-md-block">
+                            <Table responsive hover className="mb-0">
+                                <thead>
+                                    <tr>
+                                        <th className="border-0">Sản phẩm</th>
+                                        <th className="border-0">Giá</th>
+                                        <th className="border-0">Số lượng</th>
+                                        <th className="border-0 text-end">Tổng cộng</th>
+                                        <th className="border-0"></th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </Table>
+                                </thead>
+                                <tbody>
+                                    {cart.items.map(item => (
+                                        <tr key={item.id}>
+                                            <td className="py-3">
+                                                <div className="fw-bold">{item.productName}</div>
+                                            </td>
+                                            <td className="py-3">{formatCurrency(item.unitPrice)}</td>
+                                            <td className="py-3">
+                                                <div className="d-flex align-items-center">
+                                                    <Button size="sm" variant="light" onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}>-</Button>
+                                                    <span className="mx-3">{item.quantity}</span>
+                                                    <Button size="sm" variant="light" onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>+</Button>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 text-end fw-bold">{formatCurrency(item.unitPrice * item.quantity)}</td>
+                                            <td className="py-3 text-end">
+                                                <Button variant="outline-danger" size="sm" onClick={() => handleRemove(item.id)}>×</Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        </div>
+
+                        {/* Mobile View Cards */}
+                        <div className="d-md-none">
+                            {cart.items.map(item => (
+                                <div key={item.id} className="cart-mobile-item glass-card mb-3 p-3 position-relative overflow-hidden">
+                                     <div className="d-flex gap-3">
+                                        <div className="bg-light rounded p-2 d-flex align-items-center justify-content-center" style={{ width: '80px', height: '80px' }}>
+                                            <span style={{ fontSize: '1.5rem' }}>📱</span>
+                                        </div>
+                                        <div className="flex-grow-1">
+                                            <div className="d-flex justify-content-between align-items-start">
+                                                <h6 className="fw-bold mb-1 pe-4" style={{ fontSize: '1rem' }}>{item.productName}</h6>
+                                                <Button variant="link" className="text-danger p-0 position-absolute top-0 end-0 m-2 text-decoration-none" onClick={() => handleRemove(item.id)}>
+                                                    <span style={{ fontSize: '1.2rem' }}>×</span>
+                                                </Button>
+                                            </div>
+                                            <div className="text-muted small mb-2">{formatCurrency(item.unitPrice)}</div>
+                                            
+                                            <div className="d-flex justify-content-between align-items-center mt-2">
+                                                <div className="d-flex align-items-center bg-white border rounded-pill p-1 shadow-sm" style={{ width: '120px' }}>
+                                                    <Button variant="light" className="rounded-circle p-0 d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px', fontWeight: 'bold' }} onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}>-</Button>
+                                                    <span className="flex-grow-1 text-center fw-bold small">{item.quantity}</span>
+                                                    <Button variant="light" className="rounded-circle p-0 d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px', fontWeight: 'bold' }} onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>+</Button>
+                                                </div>
+                                                <div className="fw-bold text-primary">{formatCurrency(item.unitPrice * item.quantity)}</div>
+                                            </div>
+                                        </div>
+                                     </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </Col>
 

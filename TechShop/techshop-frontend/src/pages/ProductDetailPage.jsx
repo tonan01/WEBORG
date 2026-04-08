@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Badge, Card, Spinner } from 'react-bootstrap';
 import { productService, cartService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../utils/formatters';
 
@@ -12,6 +13,7 @@ function ProductDetailPage() {
     const [loading, setLoading] = useState(true);
     const [adding, setAdding] = useState(false);
     const { user } = useAuth();
+    const { refreshCartCount } = useCart();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,6 +40,7 @@ function ProductDetailPage() {
         try {
             await cartService.add(product.id, 1);
             toast.success('Đã thêm vào giỏ hàng!');
+            refreshCartCount();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Lỗi khi thêm vào giỏ hàng');
         } finally {
@@ -63,10 +66,10 @@ function ProductDetailPage() {
     }
 
     return (
-        <Container className="py-5 animate-fade">
-            <Row className="gx-5">
+        <Container className="py-4 py-md-5 animate-fade">
+            <Row className="gx-0 gx-md-5">
                 <Col lg={6} className="mb-4">
-                    <div className="glass-card p-2 h-100 overflow-hidden d-flex align-items-center justify-content-center bg-white" style={{ minHeight: '400px' }}>
+                    <div className="glass-card p-2 h-100 overflow-hidden d-flex align-items-center justify-content-center bg-white" style={{ minHeight: '300px' }}>
                         <img 
                             src={product.imageUrl || 'https://placehold.co/600x400?text=No+Image'} 
                             alt={product.name}

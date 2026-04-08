@@ -171,6 +171,12 @@ function ProfilePage() {
                                     <Badge bg="light" text="primary" className="rounded-pill px-3 py-2 border shadow-sm small uppercase tracking-wider font-bold">
                                         {user?.role === 'Admin' ? 'Quản trị viên' : 'Thành viên'}
                                     </Badge>
+
+                                    <div className="mt-4 d-grid d-md-none">
+                                        <Button variant="outline-danger" className="rounded-pill py-2" onClick={logout}>
+                                            <i className="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                                        </Button>
+                                    </div>
                                 </Card.Body>
                             </Card>
                         </Col>
