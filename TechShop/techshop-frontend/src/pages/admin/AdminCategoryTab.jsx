@@ -6,12 +6,33 @@ const AdminCategoryTab = ({
     setEditingCategory, 
     setCategoryForm, 
     setShowCatModal, 
-    deleteCategory 
+    deleteCategory,
+    loadData
 }) => {
+    const [refreshing, setRefreshing] = React.useState(false);
+
+    const handleRefresh = () => {
+        setRefreshing(true);
+        loadData();
+        setTimeout(() => setRefreshing(false), 800);
+    };
+
     return (
         <div className="p-4">
-            <div className="d-flex justify-content-between mb-4">
-                <h5>Danh mục ({categories.length})</h5>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <div className="d-flex align-items-center gap-3">
+                    <h5 className="mb-0">Danh mục ({categories.length})</h5>
+                    <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        onClick={handleRefresh}
+                        className={`rounded-circle d-flex align-items-center justify-content-center ${refreshing ? 'spin-animation' : ''}`}
+                        style={{ width: '32px', height: '32px' }}
+                        title="Làm mới"
+                    >
+                        ↻
+                    </Button>
+                </div>
                 <Button variant="primary" onClick={() => {
                     setEditingCategory(null);
                     setCategoryForm({ name: '', description: '', imageUrl: '', parentCategoryId: '' });

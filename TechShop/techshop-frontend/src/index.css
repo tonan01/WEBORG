@@ -394,3 +394,44 @@ h1, h2, h3, h4, h5, .navbar-brand {
   50% { transform: scale(1.2); }
   100% { transform: scale(1); }
 }
+
+
+
+/* Admin Tabs Optimization */
+.custom-tabs {
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px !important;
+}
+
+.custom-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.custom-tabs .nav-link {
+  white-space: nowrap !important;
+  padding: 10px 15px !important;
+  font-weight: 500 !important;
+  color: var(--text-muted) !important;
+  border: none !important;
+}
+
+.custom-tabs .nav-link.active {
+  color: var(--primary-color) !important;
+  background: transparent !important;
+  border-bottom: 2px solid var(--primary-color) !important;
+}
+
+
+
+/* Refresh Spin Animation */
+@keyframes rotate-refresh {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-animation {
+  animation: rotate-refresh 0.8s linear;
+}

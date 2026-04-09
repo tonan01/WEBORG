@@ -54,6 +54,14 @@ function AdminUserTab() {
         }
     };
 
+    const [refreshing, setRefreshing] = useState(false);
+
+    const handleRefresh = () => {
+        setRefreshing(true);
+        loadUsers();
+        setTimeout(() => setRefreshing(false), 800);
+    };
+
     if (loading) return <div className="text-center py-5">Đang tải...</div>;
 
     return (
@@ -61,6 +69,16 @@ function AdminUserTab() {
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div className="d-flex align-items-center gap-3">
                     <h4 className="mb-0">Quản lý người dùng</h4>
+                    <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        onClick={handleRefresh}
+                        className={`rounded-circle d-flex align-items-center justify-content-center ${refreshing ? 'spin-animation' : ''}`}
+                        style={{ width: '32px', height: '32px' }}
+                        title="Làm mới"
+                    >
+                        ↻
+                    </Button>
                     <Form.Select 
                         size="sm" 
                         style={{ width: '150px' }}
@@ -88,7 +106,6 @@ function AdminUserTab() {
                         <option value="true">Bị khóa</option>
                     </Form.Select>
                 </div>
-                <Button variant="outline-primary" size="sm" onClick={loadUsers}>Làm mới</Button>
             </div>
 
             <div className="table-responsive">

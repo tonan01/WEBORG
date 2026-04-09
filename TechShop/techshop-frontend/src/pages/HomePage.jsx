@@ -185,12 +185,12 @@ function HomePage() {
                                     <p className="text-muted">Không tìm thấy thiết bị nào trong danh mục này.</p>
                                 </Col>
                             ) : products.map(p => (
-                                <Col lg={4} sm={6} key={p.id} className="mb-4">
+                                <Col lg={4} md={6} xs={6} key={p.id} className="mb-3 mb-md-4 px-2 px-md-3">
                                     <Card className="glass-card h-100 border-0 overflow-hidden shadow-hover">
                                         <div 
                                             onClick={() => navigate(`/product/${p.id}`)}
                                             className="overflow-hidden d-flex align-items-center justify-content-center bg-light"
-                                            style={{ height: '220px', cursor: 'pointer' }}
+                                            style={{ height: '180px', cursor: 'pointer' }}
                                         >
                                             <img 
                                                 src={p.imageUrl || 'https://placehold.co/600x400?text=No+Image'} 
@@ -200,45 +200,33 @@ function HomePage() {
                                                 onError={(e) => { e.target.src = 'https://placehold.co/600x400?text=No+Image'; }}
                                             />
                                         </div>
-                                        <Card.Body className="pt-3">
-                                            <div className="d-flex justify-content-between align-items-start mb-2">
+                                        <Card.Body className="p-2 p-md-3 d-flex flex-column h-100" onClick={() => navigate(`/product/${p.id}`)} style={{ cursor: 'pointer' }}>
+                                            <div className="mb-auto">
+                                                <small className="text-muted opacity-75" style={{ fontSize: '0.7rem' }}>{p.categoryName}</small>
                                                 <Card.Title 
-                                                    className="mb-0 text-truncate" 
-                                                    style={{ cursor: 'pointer' }}
-                                                    onClick={() => navigate(`/product/${p.id}`)}
+                                                    className="mb-1 text-truncate h6 fw-bold" 
+                                                    style={{ fontSize: '0.9rem', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', whiteSpace: 'normal', height: '2.5rem', overflow: 'hidden' }}
                                                 >
                                                     {p.name}
                                                 </Card.Title>
-                                                <Badge bg="light" text="primary" className="rounded-pill">{p.categoryName}</Badge>
                                             </div>
-                                            <Card.Text className="text-muted small mb-3" style={{ height: '40px', overflow: 'hidden' }}>
-                                                {p.description}
-                                            </Card.Text>
-                                             <div className="d-flex justify-content-between align-items-center">
-                                                <h4 className="text-primary mb-0">
+                                            <div className="d-flex justify-content-between align-items-center mt-2">
+                                                <span className="fw-bold text-primary" style={{ fontSize: '0.95rem' }}>
                                                     {formatCurrency(p.price)}
-                                                </h4>
-                                                <span className="small text-muted">{p.stock} trong kho</span>
-                                            </div>
-                                        </Card.Body>
-                                        <Card.Footer className="bg-transparent border-0 pb-3 p-3">
-                                            <div className="d-grid gap-2">
+                                                </span>
                                                 <Button 
                                                     variant="primary" 
-                                                    onClick={() => handleAddToCart(p.id)}
+                                                    size="sm" 
+                                                    className="rounded-circle p-0 d-flex align-items-center justify-content-center"
+                                                    style={{ width: '32px', height: '32px' }}
+                                                    onClick={(e) => { e.stopPropagation(); handleAddToCart(p.id); }}
                                                     disabled={p.stock <= 0}
                                                 >
-                                                    {p.stock > 0 ? 'Thêm vào giỏ' : 'Hết hàng'}
-                                                </Button>
-                                                <Button 
-                                                    variant="outline-primary" 
-                                                    size="sm"
-                                                    onClick={() => navigate(`/product/${p.id}`)}
-                                                >
-                                                    Xem chi tiết
+                                                    +
                                                 </Button>
                                             </div>
-                                        </Card.Footer>
+                                        </Card.Body>
+
                                     </Card>
                                 </Col>
                             ))}

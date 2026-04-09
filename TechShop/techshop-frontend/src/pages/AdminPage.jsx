@@ -218,6 +218,7 @@ function AdminPage() {
                             setShowProdModal={setShowProdModal}
                             deleteProduct={deleteProduct}
                             restoreProduct={restoreProduct}
+                            loadData={loadData}
                         />
                     </Tab>
 
@@ -228,6 +229,7 @@ function AdminPage() {
                             setCategoryForm={setCategoryForm}
                             setShowCatModal={setShowCatModal}
                             deleteCategory={deleteCategory}
+                            loadData={loadData}
                         />
                     </Tab>
 
@@ -254,36 +256,36 @@ function AdminPage() {
                         <div className="p-4">
                             {stats ? (
                                 <>
-                                    <Row className="mb-4">
-                                        <Col md={3}>
-                                            <Card className="text-center border-0 bg-light shadow-sm mb-3">
-                                                <Card.Body>
-                                                    <div className="text-muted small mb-1">Tổng doanh thu</div>
-                                                    <h3 className="text-primary mb-0">{formatCurrency(stats.totalRevenue)}</h3>
+                                    <Row className="mb-4 g-2 g-md-3">
+                                        <Col xs={6} md={3}>
+                                            <Card className="text-center border-0 bg-white shadow-sm mb-2 mb-md-3 h-100">
+                                                <Card.Body className="p-3 p-md-4">
+                                                    <div className="text-muted small mb-1">Doanh thu</div>
+                                                    <h5 className="text-primary mb-0 fw-bold">{formatCurrency(stats.totalRevenue)}</h5>
                                                 </Card.Body>
                                             </Card>
                                         </Col>
-                                        <Col md={3}>
-                                            <Card className="text-center border-0 bg-light shadow-sm mb-3">
-                                                <Card.Body>
-                                                    <div className="text-muted small mb-1">Tổng đơn hàng</div>
-                                                    <h3 className="text-success mb-0">{stats.totalOrders}</h3>
+                                        <Col xs={6} md={3}>
+                                            <Card className="text-center border-0 bg-white shadow-sm mb-2 mb-md-3 h-100">
+                                                <Card.Body className="p-3 p-md-4">
+                                                    <div className="text-muted small mb-1">Đơn hàng</div>
+                                                    <h5 className="text-success mb-0 fw-bold">{stats.totalOrders}</h5>
                                                 </Card.Body>
                                             </Card>
                                         </Col>
-                                        <Col md={3}>
-                                            <Card className="text-center border-0 bg-light shadow-sm mb-3">
-                                                <Card.Body>
+                                        <Col xs={6} md={3}>
+                                            <Card className="text-center border-0 bg-white shadow-sm mb-2 mb-md-3 h-100">
+                                                <Card.Body className="p-3 p-md-4">
                                                     <div className="text-muted small mb-1">Sản phẩm</div>
-                                                    <h3 className="text-info mb-0">{stats.totalProducts}</h3>
+                                                    <h5 className="text-info mb-0 fw-bold">{stats.totalProducts}</h5>
                                                 </Card.Body>
                                             </Card>
                                         </Col>
-                                        <Col md={3}>
-                                            <Card className="text-center border-0 bg-light shadow-sm mb-3">
-                                                <Card.Body>
+                                        <Col xs={6} md={3}>
+                                            <Card className="text-center border-0 bg-white shadow-sm mb-2 mb-md-3 h-100">
+                                                <Card.Body className="p-3 p-md-4">
                                                     <div className="text-muted small mb-1">Danh mục</div>
-                                                    <h3 className="text-purple mb-0" style={{ color: '#a855f7' }}>{stats.totalCategories}</h3>
+                                                    <h5 className="text-purple mb-0 fw-bold" style={{ color: '#a855f7' }}>{stats.totalCategories}</h5>
                                                 </Card.Body>
                                             </Card>
                                         </Col>

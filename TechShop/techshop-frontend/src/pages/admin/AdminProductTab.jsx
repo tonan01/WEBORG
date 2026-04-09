@@ -14,13 +14,32 @@ const AdminProductTab = ({
     setProductForm,
     setShowProdModal,
     deleteProduct,
-    restoreProduct
+    restoreProduct,
+    loadData
 }) => {
+    const [refreshing, setRefreshing] = React.useState(false);
+
+    const handleRefresh = () => {
+        setRefreshing(true);
+        loadData();
+        setTimeout(() => setRefreshing(false), 800);
+    };
+
     return (
         <div className="p-4">
             <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div className="d-flex align-items-center gap-3">
                     <h5 className="mb-0">Sản phẩm ({products.length})</h5>
+                    <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        onClick={handleRefresh}
+                        className={`rounded-circle d-flex align-items-center justify-content-center ${refreshing ? 'spin-animation' : ''}`}
+                        style={{ width: '32px', height: '32px' }}
+                        title="Làm mới"
+                    >
+                        ↻
+                    </Button>
                     <Form.Select 
                         size="sm" 
                         style={{ width: '150px' }}
