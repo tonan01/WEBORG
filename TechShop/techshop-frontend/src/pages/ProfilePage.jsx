@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Image, Spinner, Badge, Accordion } from 'react-bootstrap';
+import { User, Camera, LogOut, Lock, Contact } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authService, uploadService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -132,7 +133,7 @@ function ProfilePage() {
                 <Col lg={10}>
                     <div className="d-flex align-items-center mb-4 gap-3">
                         <div className="bg-primary p-3 rounded-4 shadow-sm text-white">
-                            <i className="bi bi-person-badge fs-4"></i>
+                            <Contact size={24} />
                         </div>
                         <div>
                             <h2 className="mb-0 fw-bold">Hồ sơ cá nhân</h2>
@@ -155,7 +156,7 @@ function ProfilePage() {
                                             style={{ objectFit: 'cover' }}
                                         />
                                         <label htmlFor="avatar-upload" className="avatar-edit-badge shadow-sm">
-                                            {uploading ? <Spinner size="sm" animation="border" /> : <i className="bi bi-camera-fill"></i>}
+                                            {uploading ? <Spinner size="sm" animation="border" /> : <Camera size={18} />}
                                         </label>
                                         <input 
                                             type="file" 
@@ -173,8 +174,8 @@ function ProfilePage() {
                                     </Badge>
 
                                     <div className="mt-4 d-grid d-md-none">
-                                        <Button variant="outline-danger" className="rounded-pill py-2" onClick={logout}>
-                                            <i className="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                                        <Button variant="outline-danger" className="rounded-pill py-2 d-flex align-items-center justify-content-center gap-2" onClick={logout}>
+                                            <LogOut size={18} /> Đăng xuất
                                         </Button>
                                     </div>
                                 </Card.Body>
@@ -263,7 +264,7 @@ function ProfilePage() {
                                 <Accordion.Item eventKey="0" className="border-0 shadow-sm rounded-4 overflow-hidden">
                                     <Accordion.Header className="bg-white">
                                         <div className="d-flex align-items-center gap-2 py-1">
-                                            <i className="bi bi-shield-lock-fill text-primary mt-1"></i>
+                                            <Lock size={18} className="text-primary" />
                                             <span className="fw-bold">Đổi mật khẩu</span>
                                         </div>
                                     </Accordion.Header>

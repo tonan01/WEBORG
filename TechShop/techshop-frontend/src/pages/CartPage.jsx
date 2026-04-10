@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Table, Button, Card, Row, Col, Form } from 'react-bootstrap';
+import { ShoppingCart, Trash2, X, Smartphone, Plus, Minus } from 'lucide-react';
 import { cartService, orderService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -83,9 +84,14 @@ function CartPage() {
     if (!cart || cart.items.length === 0) {
         return (
             <Container className="py-5 text-center animate-fade">
-                <div className="glass-card p-5">
+                <div className="glass-card p-5 d-flex flex-column align-items-center">
+                    <div className="bg-light p-4 rounded-circle mb-4 text-muted">
+                        <ShoppingCart size={64} />
+                    </div>
                     <h2 className="mb-4">Giỏ hàng của bạn đang trống</h2>
-                    <Button variant="primary" onClick={() => navigate('/')}>Bắt đầu mua sắm</Button>
+                    <Button variant="primary" className="rounded-pill px-5 py-3 shadow-sm" onClick={() => navigate('/')}>
+                        Bắt đầu mua sắm
+                    </Button>
                 </div>
             </Container>
         );
@@ -118,14 +124,16 @@ function CartPage() {
                                             <td className="py-3">{formatCurrency(item.unitPrice)}</td>
                                             <td className="py-3">
                                                 <div className="d-flex align-items-center">
-                                                    <Button size="sm" variant="light" onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}>-</Button>
-                                                    <span className="mx-3">{item.quantity}</span>
-                                                    <Button size="sm" variant="light" onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>+</Button>
+                                                    <Button size="sm" variant="primary" className="p-1 d-flex align-items-center justify-content-center rounded-circle" style={{width: '28px', height: '28px'}} onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}><span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px', marginTop: '-2px' }}>-</span></Button>
+                                                    <span className="mx-3 fw-bold">{item.quantity}</span>
+                                                    <Button size="sm" variant="primary" className="p-1 d-flex align-items-center justify-content-center rounded-circle" style={{width: '28px', height: '28px'}} onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}><span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px', marginTop: '-2px' }}>+</span></Button>
                                                 </div>
                                             </td>
                                             <td className="py-3 text-end fw-bold">{formatCurrency(item.unitPrice * item.quantity)}</td>
                                             <td className="py-3 text-end">
-                                                <Button variant="outline-danger" size="sm" onClick={() => handleRemove(item.id)}>×</Button>
+                                                <Button variant="outline-danger" size="sm" className="rounded-circle" style={{ width: '32px', height: '32px', padding: 0 }} onClick={() => handleRemove(item.id)}>
+                                                    <Trash2 size={16} />
+                                                </Button>
                                             </td>
                                         </tr>
                                     ))}
@@ -139,22 +147,22 @@ function CartPage() {
                                 <div key={item.id} className="cart-mobile-item glass-card mb-3 p-3 position-relative overflow-hidden">
                                      <div className="d-flex gap-3">
                                         <div className="bg-light rounded p-2 d-flex align-items-center justify-content-center" style={{ width: '80px', height: '80px' }}>
-                                            <span style={{ fontSize: '1.5rem' }}>📱</span>
+                                            <Smartphone size={32} className="text-muted" />
                                         </div>
                                         <div className="flex-grow-1">
                                             <div className="d-flex justify-content-between align-items-start">
                                                 <h6 className="fw-bold mb-1 pe-4" style={{ fontSize: '1rem' }}>{item.productName}</h6>
                                                 <Button variant="link" className="text-danger p-0 position-absolute top-0 end-0 m-2 text-decoration-none" onClick={() => handleRemove(item.id)}>
-                                                    <span style={{ fontSize: '1.2rem' }}>×</span>
+                                                    <X size={20} />
                                                 </Button>
                                             </div>
                                             <div className="text-muted small mb-2">{formatCurrency(item.unitPrice)}</div>
                                             
                                             <div className="d-flex justify-content-between align-items-center mt-2">
                                                 <div className="d-flex align-items-center bg-white border rounded-pill p-1 shadow-sm" style={{ width: '120px' }}>
-                                                    <Button variant="light" className="rounded-circle p-0 d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px', fontWeight: 'bold' }} onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}>-</Button>
+                                                    <Button variant="light" className="rounded-circle p-0 d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px' }} onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}><Minus size={14} /></Button>
                                                     <span className="flex-grow-1 text-center fw-bold small">{item.quantity}</span>
-                                                    <Button variant="light" className="rounded-circle p-0 d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px', fontWeight: 'bold' }} onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>+</Button>
+                                                    <Button variant="light" className="rounded-circle p-0 d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px' }} onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}><Plus size={14} /></Button>
                                                 </div>
                                                 <div className="fw-bold text-primary">{formatCurrency(item.unitPrice * item.quantity)}</div>
                                             </div>

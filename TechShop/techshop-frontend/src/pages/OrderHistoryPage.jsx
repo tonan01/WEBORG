@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Row, Col, Badge, Table } from 'react-bootstrap';
+import { ShoppingBag, PackageCheck, CreditCard, Truck } from 'lucide-react';
 import PaginationComponent from '../components/PaginationComponent';
 import { orderService } from '../services/api';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -42,8 +43,11 @@ function OrderHistoryPage() {
         <Container className="py-4 animate-fade">
             <h2 className="mb-4 display-6">Đơn hàng của tôi</h2>
             {orders.length === 0 ? (
-                <div className="glass-card p-5 text-center">
-                    <p className="text-muted">Bạn chưa có đơn hàng nào.</p>
+                <div className="glass-card p-5 text-center d-flex flex-column align-items-center">
+                    <div className="bg-light p-4 rounded-circle mb-4 text-muted">
+                        <ShoppingBag size={64} />
+                    </div>
+                    <p className="text-muted mb-0">Bạn chưa có đơn hàng nào.</p>
                 </div>
             ) : (
                 <>

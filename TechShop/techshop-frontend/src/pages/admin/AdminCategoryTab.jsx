@@ -1,5 +1,6 @@
 import React from 'react';
 import { Table, Button } from 'react-bootstrap';
+import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-react';
 
 const AdminCategoryTab = ({ 
     categories, 
@@ -30,14 +31,17 @@ const AdminCategoryTab = ({
                         style={{ width: '32px', height: '32px' }}
                         title="Làm mới"
                     >
-                        ↻
+                        <RefreshCw size={14} />
                     </Button>
                 </div>
                 <Button variant="primary" onClick={() => {
                     setEditingCategory(null);
                     setCategoryForm({ name: '', description: '', imageUrl: '', parentCategoryId: '' });
                     setShowCatModal(true);
-                }}>+ Thêm Danh mục</Button>
+                }}>
+                    <Plus size={18} className="me-2" />
+                    Thêm Danh mục
+                </Button>
             </div>
             <Table responsive hover className="align-middle">
                 <thead>
@@ -67,12 +71,16 @@ const AdminCategoryTab = ({
                             <td>{c.parentCategoryName || <span className="text-muted small">Gốc (Root)</span>}</td>
                             <td className="small text-muted">{c.description || '-'}</td>
                             <td>
-                                <Button size="sm" variant="outline-info" className="me-2" onClick={() => {
+                                <Button size="sm" variant="outline-info" className="me-2 d-inline-flex align-items-center gap-1" onClick={() => {
                                     setEditingCategory(c);
                                     setCategoryForm({ ...c, parentCategoryId: c.parentCategoryId || '' });
                                     setShowCatModal(true);
-                                }}>Sửa</Button>
-                                <Button size="sm" variant="outline-danger" onClick={() => deleteCategory(c.id)}>Xóa</Button>
+                                }}>
+                                    <Edit size={14} /> Sửa
+                                </Button>
+                                <Button size="sm" variant="outline-danger" className="d-inline-flex align-items-center gap-1" onClick={() => deleteCategory(c.id)}>
+                                    <Trash2 size={14} /> Xóa
+                                </Button>
                             </td>
                         </tr>
                     ))}

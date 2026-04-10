@@ -2,6 +2,7 @@ import React from 'react';
 import { Table, Button, Form, Badge } from 'react-bootstrap';
 import PaginationComponent from '../../components/PaginationComponent';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import { RefreshCw, Eye } from 'lucide-react';
 
 const AdminOrderTab = ({ 
     orders, 
@@ -36,7 +37,7 @@ const AdminOrderTab = ({
                         style={{ width: '32px', height: '32px' }}
                         title="Làm mới"
                     >
-                        ↻
+                        <RefreshCw size={14} />
                     </Button>
                     <Form.Select 
                         size="sm" 
@@ -97,10 +98,13 @@ const AdminOrderTab = ({
                                 </Form.Select>
                             </td>
                             <td>
-                                <Button size="sm" variant="outline-dark" onClick={() => {
+                                <Button size="sm" variant="outline-dark" className="d-inline-flex align-items-center gap-2" onClick={() => {
                                     setSelectedOrder(o);
                                     setShowOrderModal(true);
-                                }}>Xem chi tiết</Button>
+                                }}>
+                                    <Eye size={14} />
+                                    Xem chi tiết
+                                </Button>
                             </td>
                         </tr>
                     ))}

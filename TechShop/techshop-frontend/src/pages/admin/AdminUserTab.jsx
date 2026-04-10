@@ -4,6 +4,7 @@ import { userService } from '../../services/api';
 import { toast } from 'react-hot-toast';
 import PaginationComponent from '../../components/PaginationComponent';
 import { formatDate } from '../../utils/formatters';
+import { RefreshCw, Lock, Unlock } from 'lucide-react';
 
 function AdminUserTab() {
     const [users, setUsers] = useState([]);
@@ -77,7 +78,7 @@ function AdminUserTab() {
                         style={{ width: '32px', height: '32px' }}
                         title="Làm mới"
                     >
-                        ↻
+                        <RefreshCw size={14} />
                     </Button>
                     <Form.Select 
                         size="sm" 
@@ -153,9 +154,10 @@ function AdminUserTab() {
                                     <Button 
                                         variant={user.isLocked ? "success" : "warning"} 
                                         size="sm"
+                                        className="d-inline-flex align-items-center gap-1"
                                         onClick={() => handleToggleLock(user.id)}
                                     >
-                                        {user.isLocked ? 'Mở khóa' : 'Khóa'}
+                                        {user.isLocked ? <><Unlock size={14} /> Mở khóa</> : <><Lock size={14} /> Khóa</>}
                                     </Button>
                                 </td>
                             </tr>

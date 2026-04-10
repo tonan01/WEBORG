@@ -3,6 +3,7 @@ import { Navbar, Nav, Container, Button, NavDropdown, Image, Badge } from 'react
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { Home, ShoppingCart, Package, ShieldCheck, User, LogOut, LogIn, UserPlus } from 'lucide-react';
 
 function NavbarComponent() {
     const { user, logout } = useAuth();
@@ -45,20 +46,30 @@ function NavbarComponent() {
                 <Navbar.Toggle aria-controls="basic-navbar-nav" className="d-none d-lg-block border-0 shadow-none" />
                 <Navbar.Collapse id="basic-navbar-nav" className="d-none d-lg-block">
                     <Nav className="ms-auto align-items-lg-center">
-                        <Nav.Link as={Link} to="/" className="text-center text-lg-start">Trang chủ</Nav.Link>
+                        <Nav.Link as={Link} to="/" className="text-center text-lg-start d-flex align-items-center gap-2">
+                            <Home size={18} />
+                            Trang chủ
+                        </Nav.Link>
                         {user ? (
                             <>
-                                <Nav.Link as={Link} to="/cart" className="text-center text-lg-start position-relative">
+                                <Nav.Link as={Link} to="/cart" className="text-center text-lg-start position-relative d-flex align-items-center gap-2">
+                                    <ShoppingCart size={18} />
                                     Giỏ hàng
                                     {cartCount > 0 && (
-                                        <Badge pill bg="danger" className="position-absolute top-0 start-100 translate-middle" style={{ fontSize: '0.65rem' }}>
+                                        <Badge pill bg="danger" className="position-absolute translate-middle" style={{ fontSize: '0.65rem', top: '5px', right: '-10px' }}>
                                             {cartCount}
                                         </Badge>
                                     )}
                                 </Nav.Link>
-                                <Nav.Link as={Link} to="/history" className="text-center text-lg-start">Đơn hàng</Nav.Link>
+                                <Nav.Link as={Link} to="/history" className="text-center text-lg-start d-flex align-items-center gap-2">
+                                    <Package size={18} />
+                                    Đơn hàng
+                                </Nav.Link>
                                 {user.role === 'Admin' && (
-                                    <Nav.Link as={Link} to="/admin" className="text-warning fw-bold text-center text-lg-start">Quản trị</Nav.Link>
+                                    <Nav.Link as={Link} to="/admin" className="text-warning fw-bold text-center text-lg-start d-flex align-items-center gap-2">
+                                        <ShieldCheck size={18} />
+                                        Quản trị
+                                    </Nav.Link>
                                 )}
                                 <div className="d-flex justify-content-center d-lg-block mt-3 mt-lg-0">
                                     <NavDropdown 
@@ -79,9 +90,13 @@ function NavbarComponent() {
                                         className="ms-lg-3 custom-dropdown text-center"
                                         align="end"
                                     >
-                                        <NavDropdown.Item as={Link} to="/profile" className="text-center text-lg-start">Hồ sơ cá nhân</NavDropdown.Item>
+                                        <NavDropdown.Item as={Link} to="/profile" className="text-center text-lg-start d-flex align-items-center gap-2">
+                                            <User size={16} />
+                                            Hồ sơ cá nhân
+                                        </NavDropdown.Item>
                                         <NavDropdown.Divider />
-                                        <NavDropdown.Item onClick={handleLogout} className="text-danger text-center text-lg-start">
+                                        <NavDropdown.Item onClick={handleLogout} className="text-danger text-center text-lg-start d-flex align-items-center gap-2">
+                                            <LogOut size={16} />
                                             Đăng xuất
                                         </NavDropdown.Item>
                                     </NavDropdown>
@@ -89,8 +104,14 @@ function NavbarComponent() {
                             </>
                         ) : (
                             <div className="ms-lg-3 d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0">
-                                <Button as={Link} to="/login" variant="light" className="rounded-pill px-4 w-100 w-lg-auto">Đăng nhập</Button>
-                                <Button as={Link} to="/register" variant="primary" className="rounded-pill px-4 shadow-sm w-100 w-lg-auto">Đăng ký</Button>
+                                <Button as={Link} to="/login" variant="light" className="rounded-pill px-4 w-100 w-lg-auto d-flex align-items-center justify-content-center gap-2">
+                                    <LogIn size={18} />
+                                    Đăng nhập
+                                </Button>
+                                <Button as={Link} to="/register" variant="primary" className="rounded-pill px-4 shadow-sm w-100 w-lg-auto d-flex align-items-center justify-content-center gap-2">
+                                    <UserPlus size={18} />
+                                    Đăng ký
+                                </Button>
                             </div>
                         )}
                     </Nav>

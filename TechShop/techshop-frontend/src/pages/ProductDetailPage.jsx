@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../utils/formatters';
+import { ShoppingCart, ArrowLeft, ShieldCheck } from 'lucide-react';
 
 function ProductDetailPage() {
     const { id } = useParams();
@@ -107,20 +108,22 @@ function ProductDetailPage() {
                                 <Col sm={6}>
                                     <Button 
                                         variant="primary" 
-                                        className="w-100 py-3 shadow" 
+                                        className="w-100 py-3 shadow d-flex align-items-center justify-content-center gap-2" 
                                         disabled={product.stock <= 0 || adding}
                                         onClick={handleAddToCart}
                                     >
-                                        {adding ? 'Đang thêm...' : '🛒 Thêm vào giỏ'}
+                                        <ShoppingCart size={18} />
+                                        {adding ? 'Đang thêm...' : 'Thêm vào giỏ'}
                                     </Button>
                                 </Col>
                                 <Col sm={6}>
                                     <Button 
                                         variant="outline-dark" 
-                                        className="w-100 py-3" 
+                                        className="w-100 py-3 d-flex align-items-center justify-content-center gap-2" 
                                         onClick={() => navigate('/')}
                                     >
-                                        🛍️ Tiếp tục mua sắm
+                                        <ArrowLeft size={18} />
+                                        Tiếp tục mua sắm
                                     </Button>
                                 </Col>
                             </Row>
@@ -129,7 +132,7 @@ function ProductDetailPage() {
                         <Card className="glass-card border-0 bg-transparent">
                             <Card.Body className="d-flex align-items-center py-4">
                                 <div className="me-3 bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
-                                    <i className="bi bi-shield-check"></i> 🛡️
+                                    <ShieldCheck size={24} />
                                 </div>
                                 <div>
                                     <h6 className="mb-1">Bảo hành chính hãng</h6>

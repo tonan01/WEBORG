@@ -2,6 +2,7 @@ import React from 'react';
 import { Table, Button, Form, Badge } from 'react-bootstrap';
 import PaginationComponent from '../../components/PaginationComponent';
 import { formatCurrency } from '../../utils/formatters';
+import { RefreshCw, Plus, Edit, Trash2, RotateCcw } from 'lucide-react';
 
 const AdminProductTab = ({ 
     products, 
@@ -38,7 +39,7 @@ const AdminProductTab = ({
                         style={{ width: '32px', height: '32px' }}
                         title="Làm mới"
                     >
-                        ↻
+                        <RefreshCw size={14} />
                     </Button>
                     <Form.Select 
                         size="sm" 
@@ -58,7 +59,10 @@ const AdminProductTab = ({
                     setEditingProduct(null);
                     setProductForm({ name: '', description: '', price: 0, stock: 0, sku: '', imageUrl: '', categoryId: '' });
                     setShowProdModal(true);
-                }}>+ Thêm Sản phẩm</Button>
+                }}>
+                    <Plus size={18} className="me-2" />
+                    Thêm Sản phẩm
+                </Button>
             </div>
             <Table responsive hover className="align-middle">
                 <thead className="bg-light text-muted small uppercase">
@@ -92,18 +96,24 @@ const AdminProductTab = ({
                             <td>
                                 {!p.isDeleted ? (
                                     <>
-                                        <Button size="sm" variant="outline-info" className="me-2" onClick={() => {
+                                        <Button size="sm" variant="outline-info" className="me-2 d-inline-flex align-items-center gap-1" onClick={() => {
                                             setEditingProduct(p);
                                             setProductForm({
                                                 ...p,
                                                 categoryId: p.categoryId || ''
                                             });
                                             setShowProdModal(true);
-                                        }}>Sửa</Button>
-                                        <Button size="sm" variant="outline-danger" onClick={() => deleteProduct(p.id)}>Xóa</Button>
+                                        }}>
+                                            <Edit size={14} /> Sửa
+                                        </Button>
+                                        <Button size="sm" variant="outline-danger" className="d-inline-flex align-items-center gap-1" onClick={() => deleteProduct(p.id)}>
+                                            <Trash2 size={14} /> Xóa
+                                        </Button>
                                     </>
                                 ) : (
-                                    <Button size="sm" variant="outline-success" onClick={() => restoreProduct(p.id)}>Khôi phục</Button>
+                                    <Button size="sm" variant="outline-success" className="d-inline-flex align-items-center gap-1" onClick={() => restoreProduct(p.id)}>
+                                        <RotateCcw size={14} /> Khôi phục
+                                    </Button>
                                 )}
                             </td>
                         </tr>

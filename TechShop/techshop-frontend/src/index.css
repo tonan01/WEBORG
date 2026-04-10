@@ -308,9 +308,17 @@ h1, h2, h3, h4, h5, .navbar-brand {
   width: 20%;
 }
 
+.bottom-nav-item i, .bottom-nav-item span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .bottom-nav-item i {
-  font-size: 1.4rem;
   margin-bottom: 4px;
+  height: 24px;
+  display: flex;
+  align-items: center;
 }
 
 .bottom-nav-item.active {
@@ -319,10 +327,12 @@ h1, h2, h3, h4, h5, .navbar-brand {
 
 .bottom-nav-item.active i {
   transform: translateY(-5px);
-  color: transparent;
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: #6366f1;
+}
+
+.bottom-nav-item.active i svg {
+  stroke: #6366f1;
+  filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.3));
 }
 
 /* Category Pills - Horizontal Scroll Improved */

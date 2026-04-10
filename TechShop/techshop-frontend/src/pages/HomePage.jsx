@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Row, Col, Form, InputGroup, Container, Badge } from 'react-bootstrap';
+import { Search, Plus, PackageSearch } from 'lucide-react';
 import PaginationComponent from '../components/PaginationComponent';
 import { useNavigate } from 'react-router-dom';
 import { authService, productService, cartService, categoryService } from '../services/api';
@@ -166,8 +167,9 @@ function HomePage() {
                                     value={keyword}
                                     onChange={(e) => setKeyword(e.target.value)}
                                 />
-                                <Button type="submit" variant="primary" style={{ borderRadius: '0 12px 12px 0' }}>
-                                    Tìm kiếm
+                                <Button type="submit" variant="primary" style={{ borderRadius: '0 12px 12px 0' }} className="d-flex align-items-center gap-2 px-3">
+                                    <Search size={18} color="white" strokeWidth={2} />
+                                    <span className="d-none d-sm-inline">Tìm kiếm</span>
                                 </Button>
                             </InputGroup>
                         </Form>
@@ -181,7 +183,10 @@ function HomePage() {
                         <>
                             <Row>
                             {products.length === 0 ? (
-                                <Col className="text-center py-5">
+                                <Col className="text-center py-5 d-flex flex-column align-items-center">
+                                    <div className="bg-light p-4 rounded-circle mb-4 text-muted opacity-50">
+                                        <PackageSearch size={64} />
+                                    </div>
                                     <p className="text-muted">Không tìm thấy thiết bị nào trong danh mục này.</p>
                                 </Col>
                             ) : products.map(p => (
@@ -222,7 +227,7 @@ function HomePage() {
                                                     onClick={(e) => { e.stopPropagation(); handleAddToCart(p.id); }}
                                                     disabled={p.stock <= 0}
                                                 >
-                                                    +
+                                                    <span style={{ fontSize: '20px', fontWeight: 'bold', color: 'white', lineHeight: 1 }}>+</span>
                                                 </Button>
                                             </div>
                                         </Card.Body>

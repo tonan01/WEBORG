@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { Badge } from 'react-bootstrap';
+import { Home, ShoppingCart, Package, User, Settings } from 'lucide-react';
 
 function MobileBottomNav() {
     const { user } = useAuth();
@@ -13,14 +14,14 @@ function MobileBottomNav() {
     if (window.innerWidth >= 992) return null;
 
     const navItems = [
-        { path: '/', label: 'Trang chủ', icon: '🏠' },
-        { path: '/cart', label: 'Giỏ hàng', icon: '🛒', protected: true, badge: true },
-        { path: '/history', label: 'Đơn hàng', icon: '📦', protected: true },
-        { path: '/profile', label: 'Cá nhân', icon: '👤', protected: true },
+        { path: '/', label: 'Trang chủ', icon: <Home size={20} /> },
+        { path: '/cart', label: 'Giỏ hàng', icon: <ShoppingCart size={20} />, protected: true, badge: true },
+        { path: '/history', label: 'Đơn hàng', icon: <Package size={20} />, protected: true },
+        { path: '/profile', label: 'Cá nhân', icon: <User size={20} />, protected: true },
     ];
 
     if (user?.role === 'Admin') {
-        navItems.splice(3, 0, { path: '/admin', label: 'Quản trị', icon: '⚙️', protected: true });
+        navItems.splice(3, 0, { path: '/admin', label: 'Quản trị', icon: <Settings size={20} />, protected: true });
     }
 
     return (
